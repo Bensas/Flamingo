@@ -1,0 +1,15 @@
+register reg = |01>;
+FLAMINGO("Register before algorithm:");
+FLAMINGO(reg);
+
+//We place both qbits in superposition
+H(reg, 0);
+H(reg, 1);
+
+//We apply the Constant-1 Oracle
+X(reg, 1);
+
+H(reg, 0);
+
+FLAMINGO("Register after algorithm:");
+FLAMINGO(reg);
