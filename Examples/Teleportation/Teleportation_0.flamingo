@@ -1,0 +1,28 @@
+register reg = |000>;
+FLAMINGO("Register before algorithm:");
+FLAMINGO(reg);
+
+//We first generate a bell state between Qbits 1 and 2
+H(reg, 1);
+CNOT(reg, 1);
+
+//Apply corresponding gates to Qbits 0 and 1
+CNOT(reg, 0);
+H(reg, 0);
+
+//We apply measurements and store them in variables
+int measure0 = M(reg, 0);
+int measure1 = M(reg, 1);
+
+//Based on the values of the measurements, 
+//we apply corrections to get the desired result
+if (measure1){
+	X(reg, 2);
+}
+
+if (measure0){
+	X(reg, 2);
+}
+
+FLAMINGO("Register after algorithm:");
+FLAMINGO(reg);
