@@ -42,9 +42,9 @@ variable       [a-zA-Z]+
 "if"            { printf("If conditional"); }
 "else"          { printf("Else conditional"); }
 "while"         { printf("While loop"); }
-"FLAMINGO"		{ printf("Our printf"); }   
-{number}        { printf("This is a number"); }	
-{variable}    	{ printf("This is a variable"); }		
+"FLAMINGO"		{ printf("Our printf"); }
+{number}        { printf("This is a number"); }
+{variable}    	{ printf("This is a variable"); }
 {string}		{ printf("This is a string"); }
 .				{ /* ignorare other characters */ }
 
