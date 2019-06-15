@@ -1,0 +1,15 @@
+# flamingo gitignore
+
+# non-desirable temporary/object/executables
+*.o
+*.bin
+*.out
+
+# files created during Makefile
+flamingo
+lex.yy.c
+y.tab.c
+y.tab.h
+
+# debugging
+*.dSYM

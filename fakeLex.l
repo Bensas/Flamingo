@@ -1,3 +1,4 @@
+/* this lex exists for testing yacc only  */
 
 %{
 #include <stdio.h>
