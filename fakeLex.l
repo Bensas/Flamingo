@@ -8,10 +8,10 @@ void yyerror (char *s);
 %}
 
 %%
-[0-9]+ {printf("found num\n");return Num;}
-[a-zA-Z]+ {printf("found identifier\n");return Identifier;}
-= {printf("found equals\n");return Equals;}
-; {printf("found colon\n");return Colon;}
+[0-9]+ {yylval.value = atoi(yytext);return Number;}
+[a-zA-Z]+ {return Identifier;}
+
+[-+*/%()=;] {return yytext[0];}
 [\n]+;
 [ \t]+;
 %%
