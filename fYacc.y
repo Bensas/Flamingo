@@ -30,6 +30,8 @@ int yywrap()
 %token EQ
 %token NOT_EQ
 %token EXIT
+%token IF
+%token ELSE
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
@@ -38,17 +40,21 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program :
-    Statement ';' {;}
-    | Statement ';' Program {;}
+Program : Statement {;}
+    | Statement Program {;}
     ;
 
-Statement : Definition {;}
-    | BoolExp {;}
-    | EXIT {exit(0);}
+Statement : Definition ';' {;}
+    | IfStatement {;}
+    | EXIT ';' {exit(0);}
     ;
 
-BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;;}
+IfStatement : IF BoolVal '{' Program '}' {;}
+    | IF BoolVal '{' Program '}' ELSE '{' Program '}' {;}
+    | IF BoolVal '{' Program '}' ELSE IfStatement {;}
+    ;
+
+BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
     | BoolExpOr {$$ = $1;}
     ;
 
@@ -70,7 +76,6 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     ;
 
 Definition : IDENTIFIER '=' Integer {printf("Variable set with %d\n",$3);}
-        | 
         ;
 
 Integer :
@@ -90,7 +95,7 @@ Unit :
   IDENTIFIER  {$$ = 2;}             /*FIXME: decidir esto despues */
   | '-' Unit {$$ = -$2;}
   | NUMBER  {$$ = $1;}
-  | '(' Integer ')'  {$$ = $2;}
+  | '{' Integer ')'  {$$ = $2;}
   ;
 
 
