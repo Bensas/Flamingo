@@ -18,6 +18,7 @@ void yyerror (char *s);
 ">="			{ return GREATER_OR_EQ; }
 "=="			{ return EQ; }
 "!="			{ return NOT_EQ; }
+"exit"          { return EXIT;}
 [a-zA-Z]+ {yylval.string = (char*)malloc(strlen(yytext)); strcpy(yylval.string, yytext);return Identifier;}
 [-+*/%()=;] {return yytext[0];}
 [\n]+   ;

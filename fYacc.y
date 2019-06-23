@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 int yylex();
 void yyerror(const char *str)
 {
@@ -27,6 +28,7 @@ int yywrap()
 %token GREATER_OR_EQ
 %token EQ
 %token NOT_EQ
+%token EXIT
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
@@ -42,6 +44,7 @@ Program :
 
 Statement : Definition {;}
     | BoolExp {;}
+    | EXIT {exit(0);}
     ;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;;}
