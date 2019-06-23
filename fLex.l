@@ -40,6 +40,9 @@ gate           (X|Y|Z|H|CNOT|ID)
 "else"          { return ELSE; }
 "while"         { return WHILE; }
 "FLAMINGO"		{ return PRINT; }
+"Int"			{ return DECL_INT; }
+"String"		{ return DECL_STRING; }
+"Register"		{ return DECL_REGISTER; }
 {number}        { yylval.num = atoi(yytext); return NUMBER; }
 {variableName}  { yyval.id = strdup(yytext); return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
