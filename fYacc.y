@@ -32,6 +32,7 @@ int yywrap()
 %token EXIT
 %token IF
 %token ELSE
+%token WHILE
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
@@ -47,12 +48,15 @@ Program : Statement {;}
 Statement : Definition ';' {;}
     | IfStatement {;}
     | EXIT ';' {exit(0);}
+    | WhileStatement {;}
     ;
 
 IfStatement : IF BoolVal '{' Program '}' {;}
     | IF BoolVal '{' Program '}' ELSE '{' Program '}' {;}
     | IF BoolVal '{' Program '}' ELSE IfStatement {;}
     ;
+
+WhileStatement : WHILE BoolVal '{' Program '}' {;}
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
     | BoolExpOr {$$ = $1;}

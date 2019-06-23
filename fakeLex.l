@@ -22,6 +22,7 @@ void yyerror (char *s);
 "exit"              { return EXIT; }
 "if"                { return IF; }
 "else"              { return ELSE; }
+"while"             { return WHILE; }
 [-+*/%=;{}()]         {return yytext[0];}
 \"[a-zA-Z0-9]+\"    {yylval.string = (char*)malloc(strlen(yytext));strcpy(yylval.string, yytext);return STRING;}
 [a-zA-Z0-9]+        {yylval.string = (char*)malloc(strlen(yytext)); strcpy(yylval.string, yytext);return IDENTIFIER;}
