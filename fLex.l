@@ -3,49 +3,46 @@
 	#include <stdlib.h>
 %}
 
+
 %option noyywrap
 
 digit          [0-9]
 string		   \"[^\"]*\"
 number         -?[0-9]+(\.[0-9]+)?
-variable       [a-zA-Z]+
+variableName   [a-zA-Z]+
+gate           (X|Y|Z|H|CNOT|ID)
 
 %%
-"&&"			{ printf("Conjunction"); }
-"||"			{ printf("Disyunction"); }
-"<="			{ printf("Smaller or equal"); }
-">="			{ printf("Bigger or equal"); }
-"=="			{ printf("Equal"); }
-"!="			{ printf("Not equal"); }
-("{")			{ printf("Open key"); }
-("}")			{ printf("Closed key"); }
-";"             { printf("Semi colon"); }
-"="				{ printf("Assignment"); }
-"("				{ printf("Open parenthesis"); }
-")"				{ printf("Closed parenthesis"); }
-"|"             { printf("Pipe"); }
-"!"				{ printf("Negation"); }
-"-"				{ printf("Substraction"); }
-"+"				{ printf("Sum"); }
-"/"				{ printf("Division"); }
-"*"				{ printf("Multiplication"); }
-"%"				{ printf("Module"); }
-"<"				{ printf("Smaller"); }
-">"				{ printf("Bigger"); }
-"H"             { printf("Applies Hadamard"); }
-"X"             { printf("Applies X gate"); }
-"Y"             { printf("Applies Y gate"); }
-"Z"             { printf("Applies Z gate"); }
-"CNOT"          { printf("Applies CNOT gate"); }
-"ID"            { printf("Applies ID gate"); }
-"M"             { printf("Measures the state of a qubit"); }
-"if"            { printf("If conditional"); }
-"else"          { printf("Else conditional"); }
-"while"         { printf("While loop"); }
-"FLAMINGO"		{ printf("Our printf"); }
-{number}        { printf("This is a number"); }
-{variable}    	{ printf("This is a variable"); }
-{string}		{ printf("This is a string"); }
+"&&"			{ return AND; }
+"||"			{ return OR; }
+"<="			{ return SMALLER_OR_EQ; }
+">="			{ return GREATER_OR_EQ; }
+"=="			{ return EQ; }
+"!="			{ return NOT_EQ; }
+("{")			{ return OPEN_BRACKET; }
+("}")			{ return CLOSE_BRACKET; }
+";"             { return END; }
+"="				{ return ASSIGN; }
+"("				{ return OPEN_PARENTHESIS; }
+")"				{ return CLOSE_PARENTHESIS; }
+"|"             { return PIPE; }
+"!"				{ return NOT; }
+"-"				{ return MINUS; }
+"+"				{ return PLUS; }
+"/"				{ retutn DIVIDE; }
+"*"				{ return MULTIPLY; }
+"%"				{ return MODULO; }
+"<"				{ return SMALLER; }
+">"				{ return GREATER; }
+{gate}			{ yylval.symp = symlook(yytext); return GATE;}
+"M"             { return MEASURE; }
+"if"            { return IF; }
+"else"          { return ELSE; }
+"while"         { return WHILE; }
+"FLAMINGO"		{ return PRINT; }
+{number}        { yylval.num = atoi(yytext); return NUMBER; }
+{variableName}  { yyval.id = strdup(yytext); return ID; }
+{string}		{ yylval.string = strdup(yytext); return STRING;}
 .				{ /* ignorare other characters */ }
 
 %%
