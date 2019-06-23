@@ -25,10 +25,10 @@ void yyerror (char *s);
 "if"                { return IF; }
 "else"              { return ELSE; }
 "while"             { return WHILE; }
-"FLAMINGO"		{ return PRINT; }
-[-+*/%=;{}()]         {return yytext[0];}
-\"[a-zA-Z0-9]+\"    {yylval.string = (char*)malloc(strlen(yytext));strcpy(yylval.string, yytext);return STRING;}
-[a-zA-Z0-9]+        {yylval.string = (char*)malloc(strlen(yytext)); strcpy(yylval.string, yytext);return IDENTIFIER;}
+"FLAMINGO"		    { return PRINT; }
+[-+*/%=;{}()]       {return yytext[0];}
+\"[a-zA-Z0-9 _-]+\"    {yylval.string = strdup(yytext);return STRING;}
+[a-zA-Z0-9_-]+      {yylval.string = strdup(yytext); strcpy(yylval.string, yytext);return IDENTIFIER;}
 [\n]+               ;
 [ \t]+              ;
 
