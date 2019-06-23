@@ -27,6 +27,8 @@ int yywrap()
 %token NOT
 %token SMALLER_OR_EQ
 %token GREATER_OR_EQ
+%token GREATER_THAN
+%token SMALLER_THAN
 %token EQ
 %token NOT_EQ
 %token EXIT
@@ -77,9 +79,12 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer GREATER_OR_EQ Integer {$$ = ($1 >= $3)?1:0;}
     | Integer EQ Integer {$$ = ($1 == $3)?1:0;}
     | Integer NOT_EQ Integer {$$ = ($1 != $3)?1:0;}
+    | Integer GREATER_THAN Integer {$$ = ($1 > $3)?1:0;}
+    | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
 Definition : IDENTIFIER '=' Integer {printf("Variable set with %d\n",$3);}
+        | IDENTIFIER '=' STRING {printf("Variable set with %s\n", $3);}
         ;
 
 Integer :

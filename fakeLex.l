@@ -17,6 +17,8 @@ void yyerror (char *s);
 "!"				    { return NOT; }
 "<="	    		{ return SMALLER_OR_EQ; }
 ">="		    	{ return GREATER_OR_EQ; }
+">"                 { return GREATER_THAN; }
+"<"                 { return SMALLER_THAN; }
 "=="	    		{ return EQ; }
 "!="	    		{ return NOT_EQ; }
 "exit"              { return EXIT; }
