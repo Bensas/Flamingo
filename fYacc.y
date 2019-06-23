@@ -36,6 +36,7 @@ int yywrap()
 %token ELSE
 %token WHILE
 %token PRINT
+%token DO
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
@@ -61,6 +62,8 @@ IfStatement : IF BoolVal '{' Program '}' {;}
     ;
 
 WhileStatement : WHILE BoolVal '{' Program '}' {;}
+    | DO '{' Program '}' WHILE BoolVal ';' {;}
+    ;
 
 PrintStatement : PRINT STRING {;}
     | PRINT IDENTIFIER {;}

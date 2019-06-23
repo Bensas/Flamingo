@@ -26,9 +26,10 @@ void yyerror (char *s);
 "else"              { return ELSE; }
 "while"             { return WHILE; }
 "FLAMINGO"		    { return PRINT; }
-[-+*/%=;{}()]       {return yytext[0];}
-\"[a-zA-Z0-9 _-]+\"    {yylval.string = strdup(yytext);return STRING;}
-[a-zA-Z0-9_-]+      {yylval.string = strdup(yytext); strcpy(yylval.string, yytext);return IDENTIFIER;}
+"do"                { return DO; }
+[-+*/%=;{}()]       { return yytext[0]; }
+\"[a-zA-Z0-9 _-]+\"    { yylval.string = strdup(yytext);return STRING; }
+[a-zA-Z0-9_-]+      { yylval.string = strdup(yytext); strcpy(yylval.string, yytext);return IDENTIFIER; }
 [\n]+               ;
 [ \t]+              ;
 
