@@ -13,13 +13,21 @@ int yywrap()
 
 %}
 
-%union {int value;}
+%union {int value;char * string;}
 %start Program
 /* all Vt announced here */
 %token <value> Identifier
 %token <value> Number
-
-%type <value> Integer Term Unit
+%token <value> TRUE
+%token <value> FALSE
+%token AND
+%token OR
+%token NOT
+%token SMALLER_OR_EQ
+%token GREATER_OR_EQ
+%token EQ
+%token NOT_EQ
+%type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
 
@@ -28,8 +36,33 @@ int yywrap()
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
 Program :
-    Definition ';' {;}
-    | Definition ';' Program {;}
+    Statement ';' {;}
+    | Statement ';' Program {;}
+    ;
+
+Statement : Definition {;}
+    | BoolExp {;}
+    ;
+
+BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;;}
+    | BoolExpOr {$$ = $1;}
+    ;
+
+BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
+    | BoolVal {$$ = $1;}
+    ;
+
+BoolVal : '(' BoolExp ')' {$$ = $2;}
+    | NOT BoolVal {$$ = 1 - $2;}
+    | TRUE {$$ = 1;}
+    | FALSE {$$ = 0;}
+    | RelationalExp {$$ = $1;}
+    ;
+
+RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
+    | Integer GREATER_OR_EQ Integer {$$ = ($1 >= $3)?1:0;}
+    | Integer EQ Integer {$$ = ($1 == $3)?1:0;}
+    | Integer NOT_EQ Integer {$$ = ($1 != $3)?1:0;}
     ;
 
 Definition :
