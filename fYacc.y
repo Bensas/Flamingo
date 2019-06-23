@@ -17,10 +17,11 @@ int yywrap()
 %union {int value;char * string;}
 %start Program
 /* all Vt announced here */
-%token <value> Identifier
-%token <value> Number
+%token <value> IDENTIFIER
+%token <value> NUMBER
 %token <value> TRUE
 %token <value> FALSE
+%token <string> STRING
 %token AND
 %token OR
 %token NOT
@@ -68,8 +69,8 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer NOT_EQ Integer {$$ = ($1 != $3)?1:0;}
     ;
 
-Definition :
-        Identifier '=' Integer {printf("Variable set with %d\n",$3); }
+Definition : IDENTIFIER '=' Integer {printf("Variable set with %d\n",$3);}
+        | 
         ;
 
 Integer :
@@ -86,9 +87,9 @@ Term :
   ;
 
 Unit :
-  Identifier  {$$ = 2;}             /*FIXME: decidir esto despues */
+  IDENTIFIER  {$$ = 2;}             /*FIXME: decidir esto despues */
   | '-' Unit {$$ = -$2;}
-  | Number  {$$ = $1;}
+  | NUMBER  {$$ = $1;}
   | '(' Integer ')'  {$$ = $2;}
   ;
 
