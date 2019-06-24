@@ -38,6 +38,7 @@ int yywrap()
 %token EXIT
 %token IF
 %token ELSE
+%token DO
 %token WHILE
 %token PRINT
 %token END
@@ -52,6 +53,7 @@ int yywrap()
 %token DIVIDE
 %token MODULO
 %token GATE
+%token MEASURE
 
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
@@ -65,11 +67,11 @@ Program : Statement {;}
     | Statement Program {;}
     ;
 
-Statement : Definition ';' {;}
+Statement : Definition END {;}
     | IfStatement {;}
-    | EXIT ';' {exit(0);}
+    | EXIT END {exit(0);}
     | WhileStatement {;}
-    | PrintStatement ';' {;}
+    | PrintStatement END {;}
     ;
 
 IfStatement : IF BoolVal '{' Program '}' {;}
@@ -78,11 +80,11 @@ IfStatement : IF BoolVal '{' Program '}' {;}
     ;
 
 WhileStatement : WHILE BoolVal '{' Program '}' {;}
-    | DO '{' Program '}' WHILE BoolVal ';' {;}
+    | DO '{' Program '}' WHILE BoolVal END {;}
     ;
 
 PrintStatement : PRINT STRING {;}
-    | PRINT IDENTIFIER {;}
+    | PRINT ID {;}
     ;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
@@ -108,8 +110,13 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
-Definition : IDENTIFIER '=' Integer {printf("Variable set with %d\n",$3);}
-        | IDENTIFIER '=' STRING {printf("Variable set with %s\n", $3);}
+Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3);}
+        | ID ASSIGN STRING {printf("Variable set with %s\n", $3);}
+        | ID ASSIGN PIPE QbitValues GREATER_THAN
+        ;
+
+QbitValues : '0' QbitValues {}
+        | '1' QbitValues {}
         ;
 
 Integer :
@@ -126,7 +133,7 @@ Term :
   ;
 
 Unit :
-  IDENTIFIER  {$$ = 2;}             /*FIXME: decidir esto despues */
+  ID  {$$ = 2;}             /*FIXME: decidir esto despues */
   | '-' Unit {$$ = -$2;}
   | NUMBER  {$$ = $1;}
   | '{' Integer ')'  {$$ = $2;}
@@ -134,13 +141,42 @@ Unit :
 
 GateApply :
   GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
-  
   }; 
 
 
 %%
 
-int main()
+#define DEFAULT_OUTFILE "Main.class"
+
+void writeHexToFile(char* hexString, FILE* file);
+
+int main(int argc, char **argv)
 {
-    return yyparse();
+    char* head = "CA FE BA BE 00 00 00 34 00 0F 0A 00 03 00 0C 07 00 0D 07 00 0E 01 00 06 3C 69 6E 69 74 3E 01 00 03 28 29 56 01 00 04 43 6F 64 65 01 00 0F 4C 69 6E 65 4E 75 6D 62 65 72 54 61 62 6C 65 01 00 04 6D 61 69 6E 01 00 16 28 5B 4C 6A 61 76 61 2F 6C 61 6E 67 2F 53 74 72 69 6E 67 3B 29 56 01 00 0A 53 6F 75 72 63 65 46 69 6C 65 01 00 09 4D 61 69 6E 2E 6A 61 76 61 0C 00 04 00 05 01 00 04 4D 61 69 6E 01 00 10 6A 61 76 61 2F 6C 61 6E 67 2F 4F 62 6A 65 63 74 00 21 00 02 00 03 00 00 00 00 00 02 00 01 00 04 00 05 00 01 00 06 00 00 00 1D 00 01 00 01 00 00 00 05 2A B7 00 01 B1 00 00 00 01 00 07 00 00 00 06 00 01 00 00 00 09 00 09 00 08 00 09 00 01 00 06 00 00 00 19 00 00 00 01 00 00 00 01";
+    char* tail = "B1 00 00 00 01 00 07 00 00 00 06 00 01 00 00 00 23 00 01 00 0A 00 00 00 02 00 0B";
+    FILE * filePtr;
+    filePtr = fopen(DEFAULT_OUTFILE, "wb");
+    if(filePtr == NULL)
+    {
+        printf("Unable to create file.\n");
+        exit(EXIT_FAILURE);
+    }
+    writeHexToFile(head, filePtr);
+    yyparse();
+    writeHexToFile(tail, filePtr);
+    fclose(filePtr);
+    exit(0);
+}
+
+void writeHexToFile(char* hexString, FILE* file){
+    int strLen = strlen(hexString);
+    while (strLen > 0){
+        char * remainingStr;
+        char currentChunk = strtol(hexString, &remainingStr, 16);
+        fwrite(&currentChunk, sizeof(char), 1, file);
+        remainingStr++;
+        hexString = remainingStr;
+        strLen -= 3;
+    }
+    return;
 }

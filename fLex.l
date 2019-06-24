@@ -35,18 +35,19 @@ gate           (X|Y|Z|H|CNOT|ID)
 "%"				{ return MODULO; }
 "<"				{ return SMALLER_THAN; }
 ">"				{ return GREATER_THAN; }
-{gate}			{ yylval.symp = symlook(yytext); return GATE;}
+{gate}			{ /*yylval.symp = symlook(yytext); */return GATE;}
 "M"             { return MEASURE; }
 "if"            { return IF; }
 "else"          { return ELSE; }
+"do"			{ return DO; }
 "while"         { return WHILE; }
 "FLAMINGO"		{ return PRINT; }
 "Int"			{ return DECL_INT; }
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
-{number}        { yylval.num = atoi(yytext); return NUMBER; }
-{variableName}  { yylval.id = strdup(yytext); return ID; }
-{string}		{ yylval.string = strdup(yytext); return STRING;}
+{number}        { /*yylval.num = atoi(yytext); */ return NUMBER; }
+{variableName}  { /*yylval.id = strdup(yytext); */ return ID; }
+{string}		{/* yylval.string = strdup(yytext); */return STRING;}
 .				{ /* ignorare other characters */ }
 
 %%
