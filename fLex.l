@@ -33,8 +33,8 @@ gate           (X|Y|Z|H|CNOT|ID)
 "/"				{ return DIVIDE; }
 "*"				{ return MULTIPLY; }
 "%"				{ return MODULO; }
-"<"				{ return SMALLER; }
-">"				{ return GREATER; }
+"<"				{ return SMALLER_THAN; }
+">"				{ return GREATER_THAN; }
 {gate}			{ yylval.symp = symlook(yytext); return GATE;}
 "M"             { return MEASURE; }
 "if"            { return IF; }

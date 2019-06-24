@@ -17,11 +17,15 @@ int yywrap()
 %union {int value;char * string;}
 %start Program
 /* all Vt announced here */
-%token <value> IDENTIFIER
+%token <value> ID
 %token <value> NUMBER
 %token <value> TRUE
 %token <value> FALSE
 %token <string> STRING
+%token DECL_INT
+%token DECL_STRING
+%token DECL_REGISTER
+%token ASSIGN
 %token AND
 %token OR
 %token NOT
@@ -36,7 +40,19 @@ int yywrap()
 %token ELSE
 %token WHILE
 %token PRINT
-%token DO
+%token END
+%token OPEN_PARENTHESIS
+%token CLOSE_PARENTHESIS
+%token OPEN_BRACKET
+%token CLOSE_BRACKET
+%token PIPE
+%token PLUS
+%token MINUS
+%token MULTIPLY
+%token DIVIDE
+%token MODULO
+%token GATE
+
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
 
 %%
@@ -117,7 +133,9 @@ Unit :
   ;
 
 GateApply :
-  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { }; 
+  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
+  
+  }; 
 
 
 %%
