@@ -13,7 +13,21 @@ int yywrap()
 
 %}
 
-%union {int value;}
+%union {
+  int value;
+}
+
+%token <string> STRING
+%token <symp> ID
+%token <int> NUMBER 
+%token <cmd> PLUS MINUS MULTIPLY DIVIDE MODULO GATE
+%token <cmd> DECL_INT, DECL_STRING, DECL_REGISTER
+%token <cmd> ASSIGN GREATER GREATER_OR_EQ SMALLER SMALLER_OR_EQ EQ NOT_EQ
+%token <cmd> NOT AND OR
+%token <cmd> END PRINT
+%token <cmd> OPEN_PARENTHESIS CLOSE_PARENTHESIS OPEN_BRACKET CLOSE_BRACKET PIPE
+%token <cmd> IF ELSE WHILE
+
 %start Program
 /* all Vt announced here */
 %token <value> Identifier
@@ -55,6 +69,9 @@ Unit :
   | Number  {$$ = $1;}
   | '(' Integer ')'  {$$ = $2;}
   ;
+
+GateApply :
+  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { }; 
 
 
 %%
