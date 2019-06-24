@@ -1,7 +1,7 @@
 # MakeFile for Flamingo Language
 
 # programs with their parameters
-GCC=gcc -g -pedantic -Wall -std=c99
+GCC=gcc -g -pedantic -Wall
 YACC=yacc -d
 LEX=lex
 
