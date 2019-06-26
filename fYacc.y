@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "symbolTable.h"
+symbolTableADT mySymbolTable;
 int yylex();
 void yyerror(const char *str)
 {
@@ -75,9 +77,9 @@ Program : Statement {;}
 
 Statement : Definition END {;}
     | IfStatement {;}
-    | EXIT END {exit(0);}
     | WhileStatement {;}
     | PrintStatement END {;}
+    | EXIT END {exit(0);}
     ;
 
 IfStatement : IF BoolVal '{' Program '}' {;}
@@ -116,8 +118,8 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
-Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3);}
-        | ID ASSIGN STRING {printf("Variable set with %s\n", $3);}
+Definition : ID ASSIGN Integer {printf("Integer variable set with %d\n",$3);}
+        | ID ASSIGN STRING {printf("String variable set with %s\n", $3);}
         | ID ASSIGN PIPE QbitValues GREATER_THAN
         ;
 
@@ -139,15 +141,15 @@ Term :
   ;
 
 Unit :
-  ID  {$$ = 2;}             /*FIXME: decidir esto despues */
+  ID  {;}             /*FIXME: decidir esto despues */
   | '-' Unit {$$ = -$2;}
   | NUMBER  {$$ = $1;}
-  | '{' Integer ')'  {$$ = $2;}
+  | '(' Integer ')'  {$$ = $2;}
+  | Integer {;}
   ;
 
 GateApply :
-  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
-  }; 
+  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END {;} 
 
 
 %%
@@ -199,6 +201,7 @@ int main(int argc, char **argv)
     }
 
     fputs(head, yyout);
+    mySymbolTable = createSymbolTable();
     yyparse();
     fputs(tail, yyout);
 

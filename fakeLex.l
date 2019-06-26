@@ -29,7 +29,7 @@ void yyerror (char *s);
 "do"                { return DO; }
 [-+*/%=;{}()]       { return yytext[0]; }
 \"[a-zA-Z0-9 _-]+\"    { yylval.string = strdup(yytext);return STRING; }
-[a-zA-Z0-9_-]+      { yylval.string = strdup(yytext); strcpy(yylval.string, yytext);return IDENTIFIER; }
+[a-zA-Z0-9_-]+      { yylval.string = strdup(yytext); strcpy(yylval.string, yytext);return ID; }
 [\n]+               ;
 [ \t]+              ;
 
