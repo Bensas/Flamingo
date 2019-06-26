@@ -19,6 +19,7 @@ int yywrap()
   int value;
   char * string;
   char * id;
+  char * gate;
 }
 %start Program
 /* all Vt announced here */
@@ -151,37 +152,61 @@ GateApply :
 
 %%
 
-#define DEFAULT_OUTFILE "Main.class"
-
-void writeHexToFile(char* hexString, FILE* file);
+#define DEFAULT_OUTFILE "Main.java"
 
 int main(int argc, char **argv)
 {
-    char* head = "CA FE BA BE 00 00 00 34 00 0F 0A 00 03 00 0C 07 00 0D 07 00 0E 01 00 06 3C 69 6E 69 74 3E 01 00 03 28 29 56 01 00 04 43 6F 64 65 01 00 0F 4C 69 6E 65 4E 75 6D 62 65 72 54 61 62 6C 65 01 00 04 6D 61 69 6E 01 00 16 28 5B 4C 6A 61 76 61 2F 6C 61 6E 67 2F 53 74 72 69 6E 67 3B 29 56 01 00 0A 53 6F 75 72 63 65 46 69 6C 65 01 00 09 4D 61 69 6E 2E 6A 61 76 61 0C 00 04 00 05 01 00 04 4D 61 69 6E 01 00 10 6A 61 76 61 2F 6C 61 6E 67 2F 4F 62 6A 65 63 74 00 21 00 02 00 03 00 00 00 00 00 02 00 01 00 04 00 05 00 01 00 06 00 00 00 1D 00 01 00 01 00 00 00 05 2A B7 00 01 B1 00 00 00 01 00 07 00 00 00 06 00 01 00 00 00 09 00 09 00 08 00 09 00 01 00 06 00 00 00 19 00 00 00 01 00 00 00 01";
-    char* tail = "B1 00 00 00 01 00 07 00 00 00 06 00 01 00 00 00 23 00 01 00 0A 00 00 00 02 00 0B";
-    FILE * filePtr;
-    filePtr = fopen(DEFAULT_OUTFILE, "wb");
-    if(filePtr == NULL)
+    char* head = "import quantum.State;\
+      import quantum.Qbit;\
+      import quantum.Gates.*;\
+      public class Main {\
+        public static void main(String[] args){";
+    char* tail = "}}";
+    char *inputFile;
+    char *outputFile;
+    extern FILE *yyin, *yyout;
+
+    outputFile = argv[0];
+    if(argc > 3)
+    {
+        printf("Too many arguments!");
+        exit(1);
+    }
+    if(argc > 1)
+    {
+        inputFile = argv[1];
+        yyin = fopen(inputFile,"r");
+        if(yyin == NULL)
+        {
+            printf("Failed to open %s!", inputFile); 
+            exit(1);
+        }
+    }
+    if(argc > 2)
+    {
+        outputFile = argv[2];
+    }
+    else
+    {
+        outputFile = DEFAULT_OUTFILE;
+    }
+
+    yyout = fopen(outputFile,"w");
+    if(yyout == NULL)
     {
         printf("Unable to create file.\n");
-        exit(EXIT_FAILURE);
+        exit(1);
     }
-    writeHexToFile(head, filePtr);
-    yyparse();
-    writeHexToFile(tail, filePtr);
-    fclose(filePtr);
-    exit(0);
-}
 
-void writeHexToFile(char* hexString, FILE* file){
-    int strLen = strlen(hexString);
-    while (strLen > 0){
-        char * remainingStr;
-        char currentChunk = strtol(hexString, &remainingStr, 16);
-        fwrite(&currentChunk, sizeof(char), 1, file);
-        remainingStr++;
-        hexString = remainingStr;
-        strLen -= 3;
-    }
-    return;
+    fputs(head, yyout);
+    yyparse();
+    fputs(tail, yyout);
+
+    // if(!parsing_done)
+    // {
+    //   warning("Premature EOF",(char *)0);
+    //   unlink(outputFile);
+    //   exit(1);
+    // }
+    exit(0);
 }
