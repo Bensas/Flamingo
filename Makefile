@@ -15,7 +15,7 @@ yacc: y.tab.c
 all: lex yacc flamingo
 
 flamingo: lex.yy.c y.tab.c
-	$(GCC) lex.yy.c y.tab.c -o flamingo
+	$(GCC) lex.yy.c y.tab.c -o flamingompiler
 
 y.tab.c: fYacc.y
 	$(YACC) fYacc.y
