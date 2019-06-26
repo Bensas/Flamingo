@@ -14,10 +14,14 @@ int yywrap()
 
 %}
 
-%union {int value;char * string;}
+%union {
+  int value;
+  char * string;
+  char * id;
+}
 %start Program
 /* all Vt announced here */
-%token <value> ID
+%token <id> ID
 %token <value> NUMBER
 %token <value> TRUE
 %token <value> FALSE

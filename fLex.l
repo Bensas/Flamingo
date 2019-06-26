@@ -45,9 +45,9 @@ gate           (X|Y|Z|H|CNOT|ID)
 "Int"			{ return DECL_INT; }
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
-{number}        { /*yylval.num = atoi(yytext); */ return NUMBER; }
-{variableName}  { /*yylval.id = strdup(yytext); */ return ID; }
-{string}		{/* yylval.string = strdup(yytext); */return STRING;}
+{number}        { yylval.value = atoi(yytext); return NUMBER; }
+{variableName}  { yylval.id = strdup(yytext); return ID; }
+{string}		{ yylval.string = strdup(yytext); return STRING;}
 .				{ /* ignorare other characters */ }
 
 %%
