@@ -145,8 +145,29 @@ Unit :
   | '{' Integer ')'  {$$ = $2;}
   ;
 
-GateApply :
+GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
   GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
+      if (strcmp($1, "ID") == 0)
+          return;
+      $$ = malloc(strlen($3->name) + 
+        (strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35 + 
+        numofDigits($4));
+
+      if (strcmp($1, "H") == 0){
+          sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d());\n", $3->name, $4);
+          break;
+      } else if (strcmp($1, "X") == 0){
+          sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D());\n", $3->name, $4);
+          break;
+      } else if (strcmp($1, "Y") == 0){
+          sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D());\n", $3->name, $4);
+          break;
+      } else if (strcmp($1, "Z") == 0){
+          sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D());\n", $3->name, $4);
+          break;
+      } else if (strcmp($1, "CNOT") == 0){
+          sprintf($$, "%s.applyGateToQbit(%d, new CNOT());\n", $3->name, $4);
+      }
   }; 
 
 
@@ -209,4 +230,14 @@ int main(int argc, char **argv)
     //   exit(1);
     // }
     exit(0);
+}
+
+int numOfDigits(int n){
+    int result = 1;
+    int aux = n;
+    while (aux/10 != 0){
+        aux /= 10;
+        result++;
+    }
+    return result;
 }
