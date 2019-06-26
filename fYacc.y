@@ -114,8 +114,8 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
-Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3);}
-        | ID ASSIGN STRING {printf("Variable set with %s\n", $3);}
+Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3->value);}
+        | ID ASSIGN STRING {printf("Variable set with %s\n", $3->value);}
         | ID ASSIGN PIPE QbitValues GREATER_THAN
         ;
 
