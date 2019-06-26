@@ -20,7 +20,6 @@ int yywrap()
   char * string;
   char * gate;
   struct symtab * id;
-  struct value * value_id;
 }
 %start Program
 /* all Vt announced here */
