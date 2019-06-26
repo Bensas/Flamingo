@@ -1,6 +1,6 @@
 %{
 	#include <stdio.h>
-	#include "fYacc.tab.h"
+	#include "y.tab.h"
 	#include <stdlib.h>
 %}
 

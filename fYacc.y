@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 int yylex();
 void yyerror(const char *str)
 {
@@ -87,8 +88,8 @@ WhileStatement : WHILE BoolVal '{' Program '}' {;}
     | DO '{' Program '}' WHILE BoolVal END {;}
     ;
 
-PrintStatement : PRINT STRING {;}
-    | PRINT ID {;}
+PrintStatement : PRINT STRING {printf("%s",$2);}
+    | PRINT ID {printf("System.out.println(\"%s\");",$2);}
     ;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
@@ -114,8 +115,8 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
-Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3->value);}
-        | ID ASSIGN STRING {printf("Variable set with %s\n", $3->value);}
+Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3);}
+        | ID ASSIGN STRING {printf("Variable set with %s\n", $3);}
         | ID ASSIGN PIPE QbitValues GREATER_THAN
         ;
 
