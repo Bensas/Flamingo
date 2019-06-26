@@ -7,7 +7,6 @@
 
 %option noyywrap
 
-digit          [0-9]
 string		   \"[^\"]*\"
 number         -?[0-9]+(\.[0-9]+)?
 variableName   [a-zA-Z]+
@@ -35,7 +34,7 @@ gate           (X|Y|Z|H|CNOT|ID)
 "%"				{ return MODULO; }
 "<"				{ return SMALLER_THAN; }
 ">"				{ return GREATER_THAN; }
-{gate}			{ /*yylval.symp = symlook(yytext); */return GATE;}
+{gate}			{ yylval.gate = symlook(yytext); return GATE;}
 "M"             { return MEASURE; }
 "if"            { return IF; }
 "else"          { return ELSE; }
