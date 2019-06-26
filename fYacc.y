@@ -18,8 +18,8 @@ int yywrap()
 %union {
   int value;
   char * string;
-  char * id;
   char * gate;
+  struct symtab * id;
 }
 %start Program
 /* all Vt announced here */
@@ -90,7 +90,7 @@ WhileStatement : WHILE BoolVal '{' Program '}' {;}
     ;
 
 PrintStatement : PRINT STRING {printf("%s",$2);}
-    | PRINT ID {printf("System.out.println(\"%s\");",$2);}
+    | PRINT ID {;}
     ;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
