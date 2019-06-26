@@ -18,8 +18,9 @@ int yywrap()
 %union {
   int value;
   char * string;
-  char * id;
   char * gate;
+  struct symtab * id;
+  struct value * value_id;
 }
 %start Program
 /* all Vt announced here */
