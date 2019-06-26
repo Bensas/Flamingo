@@ -34,7 +34,7 @@ gate           (X|Y|Z|H|CNOT|ID)
 "%"				{ return MODULO; }
 "<"				{ return SMALLER_THAN; }
 ">"				{ return GREATER_THAN; }
-{gate}			{ yylval.gate = symlook(yytext); return GATE;}
+{gate}			{ yylval.gate = strdup(yytext); return GATE;}
 "M"             { return MEASURE; }
 "if"            { return IF; }
 "else"          { return ELSE; }
