@@ -10,6 +10,8 @@ flamingo
 lex.yy.c
 y.tab.c
 y.tab.h
+flamingompiler
+symbolTableTests
 
 # debugging
 *.dSYM
