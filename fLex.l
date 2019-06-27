@@ -12,6 +12,7 @@ string		   \"[^\"]*\"
 number         -?[0-9]+(\.[0-9]+)?
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
+qbitString     \|[01]+>
 
 %%
 "&&"			{ return AND; }
@@ -48,6 +49,7 @@ gate           (X|Y|Z|H|CNOT|ID)
 {number}        { yylval.value = atoi(yytext); return NUMBER; }
 {variableName}  { /*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
+{qbitString}	{ yylval.string = strdup(yytext); return QBIT_STR;}
 .				{ /* ignore other characters */ }
 
 %%
