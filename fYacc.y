@@ -18,7 +18,10 @@ int yywrap()
 }
 
 #define STRING_LEN 6
+#define INTEGER_LENGTH 3
+#define FLOAT_LENGTH 5
 #define SPACE_LEN 1
+#define NUMBER_LENGTH 15
 %}
 
 %union {
@@ -71,7 +74,7 @@ int yywrap()
 %token MODULO
 %token <gate> GATE
 %token MEASURE
-%token <string>QBIT_STR
+%token <string> QBIT_STR
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
@@ -84,10 +87,10 @@ int yywrap()
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
 Program : Statement {
-        // fputs($1, yyout);
+        fputs($1, yyout);
         }
     | Program Statement {
-        // fputs($2, yyout);
+        fputs($2, yyout);
         }
     ;
 
@@ -146,6 +149,17 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 
 Definition : ID ASSIGN NumericExpression {
             printf("NumericExpression variable set with %f\n",$3.value);
+            int length = 0;
+            if($3.type == INTEGER_TYPE) {
+                length = INTEGER_LENGTH + SPACE_LEN + strlen($1) + 1 + numOfDigits((int)$3.value);
+                $$ = malloc(length);
+                sprintf($$, "%s%s%c%d%c", "int ", $1, '=', (int)$3.value, '\0');
+            } else {
+                length = FLOAT_LENGTH + SPACE_LEN + strlen($1) + 1 + NUMBER_LENGTH;
+                $$ = malloc(length);
+                sprintf($$, "%s%s%c%f%c", "float ", $1, '=', $3.value, '\0');
+            }
+            printf("%s\n", $$);
             }
         | ID ASSIGN STRING {
             int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
@@ -175,30 +189,58 @@ QbitValues : '0' QbitValues {
         ;
 
 NumericExpression :
-  NumericExpression PLUS Term  {$$.value = $1.value + $3.value;}
-  | NumericExpression MINUS Term  {$$.value = $1.value - $3.value;}
-  | Term  {$$.value = $1.value;}
+  NumericExpression PLUS Term  {
+                        if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                            $$.type = FLOAT_TYPE;
+                        } else {
+                            $$.type = INTEGER_TYPE;
+                        }
+                        $$.value = $1.value + $3.value;
+                        }
+  | NumericExpression MINUS Term  {
+                        if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                            $$.type = FLOAT_TYPE;
+                        } else {
+                            $$.type = INTEGER_TYPE;
+                        }
+                        $$.value = $1.value - $3.value;}
+  | Term  {$$.type = $1.type;$$.value = $1.value;}
   ;
 
 Term :
-  Term MULTIPLY  Unit   {$$.value = $1.value * $3.value;}
-  | Term DIVIDE  Unit {$$.value = $1.value / $3.value;}
+  Term MULTIPLY  Unit   {
+                        if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                            $$.type = FLOAT_TYPE;
+                        } else {
+                            $$.type = INTEGER_TYPE;
+                        }
+                        $$.value = $1.value * $3.value;
+                        }
+  | Term DIVIDE  Unit {
+                        if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                            $$.type = FLOAT_TYPE;
+                        } else {
+                            $$.type = INTEGER_TYPE;
+                        }
+                        $$.value = $1.value / $3.value;
+                      }
   | Term MODULO  Unit {
                         if($$.type != INTEGER_TYPE) {
                             perror("Type error when computing modular arithmetic\n");
                             exit(1);
                         }
                         $$.value = (int)$1.value % (int)$3.value;
+                        $$.type = INTEGER_TYPE;
                         }
-  | Unit {$$ = $1;}
+  | Unit {$$.type = $1.type;$$ = $1;}
   ;
 
 Unit :
   ID  {;}             /*FIXME: decidir esto despues */
-  | '-' Unit {$$.value = -$2.value;}
+  | '-' Unit {$$.type = $2.type ;$$.value = -$2.value;}
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | '(' NumericExpression ')'  {$$.value = $2.value;}
+  | '(' NumericExpression ')'  {$$.type = $2.type;$$.value = $2.value;}
   ;
 
 
