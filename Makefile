@@ -36,7 +36,7 @@ lex.yy.c: y.tab.c fLex.l
 .PHONY: clean
 clean:
 			rm -rf *.o *.bin *.out
-			rm -rf flamingo lex.yy.c y.tab.c y.tab.h
+			rm -rf flamingompiler lex.yy.c y.tab.c y.tab.h
 			rm -rf *.dSYM
 
 
