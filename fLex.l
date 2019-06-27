@@ -2,7 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include "y.tab.h"
-	#include "parser.h"
+	//#include "parser.h"
 %}
 
 
@@ -46,7 +46,7 @@ gate           (X|Y|Z|H|CNOT|ID)
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 {number}        { yylval.value = atoi(yytext); return NUMBER; }
-{variableName}  { yylval.id = symlook(yytext); return ID; }
+{variableName}  { /*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
 .				{ /* ignorare other characters */ }
 
