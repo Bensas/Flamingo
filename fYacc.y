@@ -188,7 +188,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 			  sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", $4);
 			  break;
 		  } else if (strcmp($1, "CNOT") == 0){
-			  sprintf($$, "%s.applyGateToQbit(%d, new CNOT())", "hola", $4);
+			  sprintf($$, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", $4, $4+1);
 		  }
 	  }      
   }
@@ -264,14 +264,4 @@ int numOfDigits(int n){
 		result++;
 	}
 	return result;
-}
-
-int isValidBinaryNum(int n){
-	char* str = malloc(numOfDigits(n));
-	sprintf(str, "%d", n);
-	for (int i = 0; i < strlen(str); i++)
-		if (str[i] != '0' && str[i] != '1')
-			return 0;
-	free(str);
-	return 1;
 }
