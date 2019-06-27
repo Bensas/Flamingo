@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "symbolTable.h"
-symbolTableADT mySymbolTable;
 int yylex();
 void yyerror(const char *str)
 {
@@ -201,7 +199,6 @@ int main(int argc, char **argv)
     }
 
     fputs(head, yyout);
-    mySymbolTable = createSymbolTable();
     yyparse();
     fputs(tail, yyout);
 

@@ -14,8 +14,8 @@ yacc: y.tab.c
 .PHONY: all
 all: lex yacc flamingo
 
-flamingo: lex.yy.c y.tab.c symbolTable.c
-	$(GCC) lex.yy.c y.tab.c symbolTable.c -o flamingompiler
+flamingo: lex.yy.c y.tab.c
+	$(GCC) lex.yy.c y.tab.c -o flamingompiler
 
 y.tab.c: fYacc.y
 	$(YACC) fYacc.y
