@@ -71,7 +71,7 @@ int yywrap()
 %token MODULO
 %token <gate> GATE
 %token MEASURE
-%token <string>QBIT_STR
+%token <string> QBIT_STR
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
@@ -91,15 +91,16 @@ Program : Statement {
         }
     ;
 
-Statement : Definition END {
-                    // printf("HOLAA VIEJA %s\n", $1);
-                    // printf("Length: %d\n", strlen($1));
-                    int length = strlen($1) + 1;
-                    $$ = malloc(length);
-                    $$[length] = '\0';
-                     sprintf($$, "%s;", $1);
-                     printf("Tu vieja: %s\n", $$);
-                     }
+Statement : Declaration END {;} 
+    | Definition END {
+        // printf("HOLAA VIEJA %s\n", $1);
+        // printf("Length: %d\n", strlen($1));
+        int length = strlen($1) + 1;
+        $$ = malloc(length);
+        $$[length] = '\0';
+            sprintf($$, "%s;", $1);
+            printf("Tu vieja: %s\n", $$);
+            }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {;}
@@ -143,6 +144,26 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
     ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
+
+Declaration : DECL_INT ID {
+            printf("Fue una declaracion\n");
+        }
+        | DECL_STRING ID {
+            printf("Fue una declaracion\n");
+        }
+        | DECL_REGISTER ID {
+            printf("Fue una declaracion\n");
+        }
+        | DECL_INT Definition {
+            printf("Fue una declaracion con asignacion\n");
+            }
+        | DECL_STRING Definition {
+            printf("Fue una declaracion con asignacion\n");
+            }
+        | DECL_REGISTER Definition {
+            printf("Fue una declaracion\n");
+        }
+        ;
 
 Definition : ID ASSIGN NumericExpression {
             printf("NumericExpression variable set with %f\n",$3.value);
