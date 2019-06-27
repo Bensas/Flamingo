@@ -22,7 +22,11 @@ int yywrap()
 %}
 
 %union {
-  int value;
+  struct number {
+      float value;
+      enum type {INTEGER_TYPE, FLOAT_TYPE} type;
+  } number;
+  int boolean;
   char * string;
   char * gate;
   struct symtab * id;
@@ -30,9 +34,10 @@ int yywrap()
 %start Program
 /* all Vt announced here */
 %token <string> ID
-%token <value> NUMBER
-%token <value> TRUE
-%token <value> FALSE
+%token <number> INTEGER_NUMBER
+%token <number> FLOAT_NUMBER
+%token <boolean> TRUE
+%token <boolean> FALSE
 %token <string> STRING
 %token DECL_INT
 %token DECL_STRING
@@ -67,7 +72,8 @@ int yywrap()
 %token <gate> GATE
 %token MEASURE
 
-%type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
+%type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
+%type <number> NumericExpression Term Unit
 %type <string> GateApply QbitValues Definition Statement
 
 %%
@@ -77,7 +83,7 @@ int yywrap()
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
 Program : Statement {
-        fputs($1, yyout);
+        // fputs($1, yyout);
         }
     | Program Statement {
         // fputs($2, yyout);
@@ -102,15 +108,12 @@ Statement : Definition END {
     | EXIT END {exit(0);}
     ;
 
-IfStatement : IF BoolVal '{' Program '}' {;}
-    | IF BoolVal '{' Program '}' ELSE '{' Program '}' {;}
-    | IF BoolVal '{' Program '}' ELSE IfStatement {;}
+IfStatement : IF BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
 
-WhileStatement : WHILE BoolVal '{' Program '}' {;}
-    | DO '{' Program '}' WHILE BoolVal END {;}
+WhileStatement : WHILE BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
-
+    
 PrintStatement : PRINT STRING {printf("%s",$2);}
     | PRINT ID {;}
     ;
@@ -123,23 +126,26 @@ BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
     | BoolVal {$$ = $1;}
     ;
 
-BoolVal : '(' BoolExp ')' {$$ = $2;}
+BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$ = $2;}
     | NOT BoolVal {$$ = 1 - $2;}
     | TRUE {$$ = 1;}
     | FALSE {$$ = 0;}
     | RelationalExp {$$ = $1;}
     ;
 
-RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
-    | Integer GREATER_OR_EQ Integer {$$ = ($1 >= $3)?1:0;}
-    | Integer EQ Integer {$$ = ($1 == $3)?1:0;}
-    | Integer NOT_EQ Integer {$$ = ($1 != $3)?1:0;}
-    | Integer GREATER_THAN Integer {$$ = ($1 > $3)?1:0;}
-    | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
+RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.value <= $3.value)?1:0;}
+    | NumericExpression GREATER_OR_EQ NumericExpression {$$ = ($1.value >= $3.value)?1:0;}
+    | NumericExpression EQ NumericExpression {$$ = ($1.value == $3.value)?1:0;}
+    | NumericExpression NOT_EQ NumericExpression {$$ = ($1.value != $3.value)?1:0;}
+    | NumericExpression GREATER_THAN NumericExpression {$$ = ($1.value > $3.value)?1:0;}
+    | NumericExpression SMALLER_THAN NumericExpression {$$ = ($1.value < $3.value)?1:0;}
     ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
-Definition : ID ASSIGN Integer {printf("Integer variable set with %d\n",$3);}
+
+Definition : ID ASSIGN NumericExpression {
+            printf("NumericExpression variable set with %f\n",$3.value);
+            }
         | ID ASSIGN STRING {
             int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
             $$ = malloc(length);
@@ -167,52 +173,59 @@ QbitValues : '0' QbitValues {
               sprintf($$, "new Qbit[]{new Qbit(0, 1)");printf("Qbit1-2\n");}
         ;
 
-Integer :
-  Integer '+' Term  {$$ = $1 + $3;}
-  | Integer '-' Term  {$$ = $1 - $3;}
-  | Term  {$$ = $1;}
+NumericExpression :
+  NumericExpression PLUS Term  {$$.value = $1.value + $3.value;}
+  | NumericExpression MINUS Term  {$$.value = $1.value - $3.value;}
+  | Term  {$$.value = $1.value;}
   ;
 
 Term :
-  Term '*'  Unit   {$$ = $1 * $3;}
-  | Term '/'  Unit {$$ = $1 / $3;}
-  | Term '%'  Unit {$$ = $1 % $3;}
+  Term MULTIPLY  Unit   {$$.value = $1.value * $3.value;}
+  | Term DIVIDE  Unit {$$.value = $1.value / $3.value;}
+  | Term MODULO  Unit {
+                        if($$.type != INTEGER_TYPE) {
+                            perror("Type error when computing modular arithmetic\n");
+                            exit(1);
+                        }
+                        $$.value = (int)$1.value % (int)$3.value;
+                        }
   | Unit {$$ = $1;}
   ;
 
 Unit :
   ID  {;}             /*FIXME: decidir esto despues */
-  | '-' Unit {$$ = -$2;}
-  | NUMBER  {$$ = $1;}
-  | '(' Integer ')'  {$$ = $2;}
-  | Integer {;}
+  | '-' Unit {$$.value = -$2.value;}
+  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
+  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
+  | '(' NumericExpression ')'  {$$.value = $2.value;}
   ;
 
+
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
-  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS { 
+  GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS { 
       if (strcmp($1, "ID") != 0){
           $$ = malloc(4 + 
           ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
           numOfDigits($4));
 
           if (strcmp($1, "H") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "X") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "Y") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "Z") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "CNOT") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new CNOT())", "hola", $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new CNOT())", "hola", (int)$4.value);
           }
       }      
   }
-  ; 
+  ;
 
 
 %%

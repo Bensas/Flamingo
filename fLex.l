@@ -9,7 +9,8 @@
 %option noyywrap
 
 string		   \"[^\"]*\"
-number         -?[0-9]+(\.[0-9]+)?
+integer 	   -?[0-9]+
+float          -?[0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
 
@@ -46,9 +47,10 @@ gate           (X|Y|Z|H|CNOT|ID)
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 "exit"			{ return EXIT;}
-{number}        { yylval.value = atoi(yytext); return NUMBER; }
+{integer}       { yylval.number.value = atof(yytext); return INTEGER_NUMBER; }
+{float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
 {variableName}  { yylval.string = strdup(yytext);/*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
-.				{ /* ignore other characters */ }
+.				{ /* ignore other characters */ ;}
 
 %%
