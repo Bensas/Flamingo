@@ -4,6 +4,8 @@
 *.o
 *.bin
 *.out
+*.java
+*.class
 
 # files created during Makefile
 flamingo

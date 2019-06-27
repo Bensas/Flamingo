@@ -9,12 +9,12 @@ FILE *yyout;
 int yylex();
 void yyerror(const char *str)
 {
-        fprintf(stderr,"error: %s\n",str);
+		fprintf(stderr,"error: %s\n",str);
 }
 
 int yywrap()
 {
-        return 1;
+		return 1;
 }
 
 #define STRING_LEN 6
@@ -71,6 +71,7 @@ int yywrap()
 %token MODULO
 %token <gate> GATE
 %token MEASURE
+%token <string>QBIT_STR
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
@@ -115,16 +116,16 @@ WhileStatement : WHILE BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
     
 PrintStatement : PRINT STRING {printf("%s",$2);}
-    | PRINT ID {;}
-    ;
+	| PRINT ID {;}
+	;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
-    | BoolExpOr {$$ = $1;}
-    ;
+	| BoolExpOr {$$ = $1;}
+	;
 
 BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
-    | BoolVal {$$ = $1;}
-    ;
+	| BoolVal {$$ = $1;}
+	;
 
 BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$ = $2;}
     | NOT BoolVal {$$ = 1 - $2;}
@@ -206,7 +207,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
       if (strcmp($1, "ID") != 0){
           $$ = malloc(4 + 
           ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
-          numOfDigits($4));
+          numOfDigits((int)$4.value));
 
           if (strcmp($1, "H") == 0){
               sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", (int)$4.value);
@@ -234,67 +235,67 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 int main(int argc, char **argv)
 {
-    char* head = "import quantum.State;\n\
-      import quantum.Qbit;\n\
-      import quantum.Gates.*\n\
-      public class Main {\n\
-        public static void main(String[] args){\n";
-    char* tail = "  }\n}\n";
-    char *inputFile;
-    char *outputFile;
-    extern FILE *yyin, *yyout;
+	char* head = "import quantum.State;\n\
+	  import quantum.Qbit;\n\
+	  import quantum.Gates.*\n\
+	  public class Main {\n\
+		public static void main(String[] args){\n";
+	char* tail = "  }\n}\n";
+	char *inputFile;
+	char *outputFile;
+	extern FILE *yyin, *yyout;
 
-    outputFile = argv[0];
-    if(argc > 3)
-    {
-        printf("Too many arguments!");
-        exit(1);
-    }
-    if(argc > 1)
-    {
-        inputFile = argv[1];
-        yyin = fopen(inputFile,"r");
-        if(yyin == NULL)
-        {
-            printf("Failed to open %s!", inputFile); 
-            exit(1);
-        }
-    }
-    if(argc > 2)
-    {
-        outputFile = argv[2];
-    }
-    else
-    {
-        outputFile = DEFAULT_OUTFILE;
-    }
+	outputFile = argv[0];
+	if(argc > 3)
+	{
+		printf("Too many arguments!");
+		exit(1);
+	}
+	if(argc > 1)
+	{
+		inputFile = argv[1];
+		yyin = fopen(inputFile,"r");
+		if(yyin == NULL)
+		{
+			printf("Failed to open %s!", inputFile); 
+			exit(1);
+		}
+	}
+	if(argc > 2)
+	{
+		outputFile = argv[2];
+	}
+	else
+	{
+		outputFile = DEFAULT_OUTFILE;
+	}
 
-    yyout = fopen(outputFile,"w");
-    if(yyout == NULL)
-    {
-        printf("Unable to create file.\n");
-        exit(1);
-    }
+	yyout = fopen(outputFile,"w");
+	if(yyout == NULL)
+	{
+		printf("Unable to create file.\n");
+		exit(1);
+	}
 
-    fputs(head, yyout);
-    yyparse();
-    fputs(tail, yyout);
+	fputs(head, yyout);
+	yyparse();
+	fputs(tail, yyout);
 
-    // if(!parsing_done)
-    // {
-    //   warning("Premature EOF",(char *)0);
-    //   unlink(outputFile);
-    //   exit(1);
-    // }
-    exit(0);
+	// if(!parsing_done)
+	// {
+	//   warning("Premature EOF",(char *)0);
+	//   unlink(outputFile);
+	//   exit(1);
+	// }
+	exit(0);
 }
 
 int numOfDigits(int n){
-    int result = 1;
-    int aux = n;
-    while (aux/10 != 0){
-        aux /= 10;
-        result++;
-    }
-    return result;
+	int result = 1;
+	int aux = n;
+	while (aux/10 != 0){
+		aux /= 10;
+		result++;
+	}
+	return result;
 }

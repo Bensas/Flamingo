@@ -13,6 +13,7 @@ integer 	   -?[0-9]+
 float          -?[0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
+qbitString     \|[01]+>
 
 %%
 "&&"			{ return AND; }
@@ -51,6 +52,7 @@ gate           (X|Y|Z|H|CNOT|ID)
 {float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
 {variableName}  { yylval.string = strdup(yytext);/*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
-.				{ /* ignore other characters */ ;}
+{qbitString}	{ yylval.string = strdup(yytext); return QBIT_STR;}
+.				{ /* ignore other characters */ }
 
 %%

@@ -1,0 +1,1573 @@
+Terminals unused in grammar
+
+   DECL_INT
+   DECL_STRING
+   DECL_REGISTER
+   ELSE
+   DO
+   OPEN_BRACKET
+   CLOSE_BRACKET
+   PLUS
+   MINUS
+   MULTIPLY
+   DIVIDE
+   MODULO
+   MEASURE
+
+
+Rules useless in parser due to conflicts
+
+   43 Unit: '-' Unit
+
+
+State 25 conflicts: 8 shift/reduce
+State 26 conflicts: 3 shift/reduce
+State 40 conflicts: 2 shift/reduce, 1 reduce/reduce
+State 45 conflicts: 9 shift/reduce
+State 46 conflicts: 2 shift/reduce
+State 47 conflicts: 17 reduce/reduce
+State 65 conflicts: 3 shift/reduce
+State 71 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 72 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 73 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 74 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 75 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 76 conflicts: 2 shift/reduce, 4 reduce/reduce
+State 77 conflicts: 3 shift/reduce, 17 reduce/reduce
+State 78 conflicts: 3 shift/reduce, 17 reduce/reduce
+State 79 conflicts: 17 reduce/reduce
+State 80 conflicts: 17 reduce/reduce
+State 81 conflicts: 17 reduce/reduce
+State 83 conflicts: 3 shift/reduce
+
+
+Grammar
+
+    0 $accept: Program $end
+
+    1 Program: Statement
+    2        | Program Statement
+
+    3 Statement: Definition END
+    4          | IfStatement
+    5          | WhileStatement
+    6          | PrintStatement END
+    7          | GateApply END
+    8          | EXIT END
+
+    9 IfStatement: IF BoolVal '{' Program '}'
+
+   10 WhileStatement: WHILE BoolVal '{' Program '}'
+
+   11 PrintStatement: PRINT STRING
+   12               | PRINT ID
+
+   13 BoolExp: BoolExp AND BoolExpOr
+   14        | BoolExpOr
+
+   15 BoolExpOr: BoolExpOr OR BoolVal
+   16          | BoolVal
+
+   17 BoolVal: '(' BoolExp ')'
+   18        | NOT BoolVal
+   19        | TRUE
+   20        | FALSE
+   21        | RelationalExp
+
+   22 RelationalExp: Integer SMALLER_OR_EQ Integer
+   23              | Integer GREATER_OR_EQ Integer
+   24              | Integer EQ Integer
+   25              | Integer NOT_EQ Integer
+   26              | Integer GREATER_THAN Integer
+   27              | Integer SMALLER_THAN Integer
+
+   28 Definition: ID ASSIGN Integer
+   29           | ID ASSIGN STRING
+   30           | ID ASSIGN PIPE QbitValues GREATER_THAN
+
+   31 QbitValues: '0' QbitValues
+   32           | '1' QbitValues
+   33           | '0'
+   34           | '1'
+
+   35 Integer: Integer '+' Term
+   36        | Integer '-' Term
+   37        | Term
+
+   38 Term: Term '*' Unit
+   39     | Term '/' Unit
+   40     | Term '%' Unit
+   41     | Unit
+
+   42 Unit: ID
+   43     | '-' Unit
+   44     | NUMBER
+   45     | '(' Integer ')'
+   46     | Integer
+
+   47 GateApply: GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'%' (37) 40
+'(' (40) 17 45
+')' (41) 17 45
+'*' (42) 38
+'+' (43) 35
+'-' (45) 36 43
+'/' (47) 39
+'0' (48) 31 33
+'1' (49) 32 34
+'{' (123) 9 10
+'}' (125) 9 10
+error (256)
+ID (258) 12 28 29 30 42 47
+NUMBER (259) 44
+TRUE (260) 19
+FALSE (261) 20
+STRING (262) 11 29
+DECL_INT (263)
+DECL_STRING (264)
+DECL_REGISTER (265)
+ASSIGN (266) 28 29 30
+AND (267) 13
+OR (268) 15
+NOT (269) 18
+SMALLER_OR_EQ (270) 22
+GREATER_OR_EQ (271) 23
+GREATER_THAN (272) 26 30
+SMALLER_THAN (273) 27
+EQ (274) 24
+NOT_EQ (275) 25
+EXIT (276) 8
+IF (277) 9
+ELSE (278)
+DO (279)
+WHILE (280) 10
+PRINT (281) 11 12
+END (282) 3 6 7 8
+OPEN_PARENTHESIS (283) 47
+CLOSE_PARENTHESIS (284) 47
+OPEN_BRACKET (285)
+CLOSE_BRACKET (286)
+PIPE (287) 30
+PLUS (288)
+MINUS (289)
+MULTIPLY (290)
+DIVIDE (291)
+MODULO (292)
+GATE (293) 47
+MEASURE (294)
+
+
+Nonterminals, with rules where they appear
+
+$accept (51)
+    on left: 0
+Program (52)
+    on left: 1 2, on right: 0 2 9 10
+Statement (53)
+    on left: 3 4 5 6 7 8, on right: 1 2
+IfStatement (54)
+    on left: 9, on right: 4
+WhileStatement (55)
+    on left: 10, on right: 5
+PrintStatement (56)
+    on left: 11 12, on right: 6
+BoolExp (57)
+    on left: 13 14, on right: 13 17
+BoolExpOr (58)
+    on left: 15 16, on right: 13 14 15
+BoolVal (59)
+    on left: 17 18 19 20 21, on right: 9 10 15 16 18
+RelationalExp (60)
+    on left: 22 23 24 25 26 27, on right: 21
+Definition (61)
+    on left: 28 29 30, on right: 3
+QbitValues (62)
+    on left: 31 32 33 34, on right: 30 31 32
+Integer (63)
+    on left: 35 36 37, on right: 22 23 24 25 26 27 28 35 36 45 46 47
+Term (64)
+    on left: 38 39 40 41, on right: 35 36 37 38 39 40
+Unit (65)
+    on left: 42 43 44 45 46, on right: 38 39 40 41 43
+GateApply (66)
+    on left: 47, on right: 7
+
+
+State 0
+
+    0 $accept: . Program $end
+
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+
+    Program         go to state 7
+    Statement       go to state 8
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 1
+
+   28 Definition: ID . ASSIGN Integer
+   29           | ID . ASSIGN STRING
+   30           | ID . ASSIGN PIPE QbitValues GREATER_THAN
+
+    ASSIGN  shift, and go to state 14
+
+
+State 2
+
+    8 Statement: EXIT . END
+
+    END  shift, and go to state 15
+
+
+State 3
+
+    9 IfStatement: IF . BoolVal '{' Program '}'
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolVal        go to state 23
+    RelationalExp  go to state 24
+    Integer        go to state 25
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 4
+
+   10 WhileStatement: WHILE . BoolVal '{' Program '}'
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolVal        go to state 28
+    RelationalExp  go to state 24
+    Integer        go to state 25
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 5
+
+   11 PrintStatement: PRINT . STRING
+   12               | PRINT . ID
+
+    ID      shift, and go to state 29
+    STRING  shift, and go to state 30
+
+
+State 6
+
+   47 GateApply: GATE . OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS
+
+    OPEN_PARENTHESIS  shift, and go to state 31
+
+
+State 7
+
+    0 $accept: Program . $end
+    2 Program: Program . Statement
+
+    $end   shift, and go to state 32
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+
+    Statement       go to state 33
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 8
+
+    1 Program: Statement .
+
+    $default  reduce using rule 1 (Program)
+
+
+State 9
+
+    4 Statement: IfStatement .
+
+    $default  reduce using rule 4 (Statement)
+
+
+State 10
+
+    5 Statement: WhileStatement .
+
+    $default  reduce using rule 5 (Statement)
+
+
+State 11
+
+    6 Statement: PrintStatement . END
+
+    END  shift, and go to state 34
+
+
+State 12
+
+    3 Statement: Definition . END
+
+    END  shift, and go to state 35
+
+
+State 13
+
+    7 Statement: GateApply . END
+
+    END  shift, and go to state 36
+
+
+State 14
+
+   28 Definition: ID ASSIGN . Integer
+   29           | ID ASSIGN . STRING
+   30           | ID ASSIGN . PIPE QbitValues GREATER_THAN
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    STRING  shift, and go to state 37
+    PIPE    shift, and go to state 38
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 40
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 15
+
+    8 Statement: EXIT END .
+
+    $default  reduce using rule 8 (Statement)
+
+
+State 16
+
+   42 Unit: ID .
+
+    $default  reduce using rule 42 (Unit)
+
+
+State 17
+
+   44 Unit: NUMBER .
+
+    $default  reduce using rule 44 (Unit)
+
+
+State 18
+
+   19 BoolVal: TRUE .
+
+    $default  reduce using rule 19 (BoolVal)
+
+
+State 19
+
+   20 BoolVal: FALSE .
+
+    $default  reduce using rule 20 (BoolVal)
+
+
+State 20
+
+   18 BoolVal: NOT . BoolVal
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolVal        go to state 41
+    RelationalExp  go to state 24
+    Integer        go to state 25
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 21
+
+   17 BoolVal: '(' . BoolExp ')'
+   45 Unit: '(' . Integer ')'
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolExp        go to state 42
+    BoolExpOr      go to state 43
+    BoolVal        go to state 44
+    RelationalExp  go to state 24
+    Integer        go to state 45
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 22
+
+   43 Unit: '-' . Unit
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 26
+    Unit     go to state 47
+
+
+State 23
+
+    9 IfStatement: IF BoolVal . '{' Program '}'
+
+    '{'  shift, and go to state 48
+
+
+State 24
+
+   21 BoolVal: RelationalExp .
+
+    $default  reduce using rule 21 (BoolVal)
+
+
+State 25
+
+   22 RelationalExp: Integer . SMALLER_OR_EQ Integer
+   23              | Integer . GREATER_OR_EQ Integer
+   24              | Integer . EQ Integer
+   25              | Integer . NOT_EQ Integer
+   26              | Integer . GREATER_THAN Integer
+   27              | Integer . SMALLER_THAN Integer
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    SMALLER_OR_EQ  shift, and go to state 49
+    GREATER_OR_EQ  shift, and go to state 50
+    GREATER_THAN   shift, and go to state 51
+    SMALLER_THAN   shift, and go to state 52
+    EQ             shift, and go to state 53
+    NOT_EQ         shift, and go to state 54
+    '+'            shift, and go to state 55
+    '-'            shift, and go to state 56
+
+    SMALLER_OR_EQ  [reduce using rule 46 (Unit)]
+    GREATER_OR_EQ  [reduce using rule 46 (Unit)]
+    GREATER_THAN   [reduce using rule 46 (Unit)]
+    SMALLER_THAN   [reduce using rule 46 (Unit)]
+    EQ             [reduce using rule 46 (Unit)]
+    NOT_EQ         [reduce using rule 46 (Unit)]
+    '+'            [reduce using rule 46 (Unit)]
+    '-'            [reduce using rule 46 (Unit)]
+    $default       reduce using rule 46 (Unit)
+
+
+State 26
+
+   37 Integer: Term .
+   38 Term: Term . '*' Unit
+   39     | Term . '/' Unit
+   40     | Term . '%' Unit
+
+    '*'  shift, and go to state 57
+    '/'  shift, and go to state 58
+    '%'  shift, and go to state 59
+
+    '*'       [reduce using rule 37 (Integer)]
+    '/'       [reduce using rule 37 (Integer)]
+    '%'       [reduce using rule 37 (Integer)]
+    $default  reduce using rule 37 (Integer)
+
+
+State 27
+
+   41 Term: Unit .
+
+    $default  reduce using rule 41 (Term)
+
+
+State 28
+
+   10 WhileStatement: WHILE BoolVal . '{' Program '}'
+
+    '{'  shift, and go to state 60
+
+
+State 29
+
+   12 PrintStatement: PRINT ID .
+
+    $default  reduce using rule 12 (PrintStatement)
+
+
+State 30
+
+   11 PrintStatement: PRINT STRING .
+
+    $default  reduce using rule 11 (PrintStatement)
+
+
+State 31
+
+   47 GateApply: GATE OPEN_PARENTHESIS . ID Integer CLOSE_PARENTHESIS
+
+    ID  shift, and go to state 61
+
+
+State 32
+
+    0 $accept: Program $end .
+
+    $default  accept
+
+
+State 33
+
+    2 Program: Program Statement .
+
+    $default  reduce using rule 2 (Program)
+
+
+State 34
+
+    6 Statement: PrintStatement END .
+
+    $default  reduce using rule 6 (Statement)
+
+
+State 35
+
+    3 Statement: Definition END .
+
+    $default  reduce using rule 3 (Statement)
+
+
+State 36
+
+    7 Statement: GateApply END .
+
+    $default  reduce using rule 7 (Statement)
+
+
+State 37
+
+   29 Definition: ID ASSIGN STRING .
+
+    $default  reduce using rule 29 (Definition)
+
+
+State 38
+
+   30 Definition: ID ASSIGN PIPE . QbitValues GREATER_THAN
+
+    '0'  shift, and go to state 62
+    '1'  shift, and go to state 63
+
+    QbitValues  go to state 64
+
+
+State 39
+
+   45 Unit: '(' . Integer ')'
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 65
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 40
+
+   28 Definition: ID ASSIGN Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    END       reduce using rule 28 (Definition)
+    END       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    $default  reduce using rule 46 (Unit)
+
+
+State 41
+
+   18 BoolVal: NOT BoolVal .
+
+    $default  reduce using rule 18 (BoolVal)
+
+
+State 42
+
+   13 BoolExp: BoolExp . AND BoolExpOr
+   17 BoolVal: '(' BoolExp . ')'
+
+    AND  shift, and go to state 66
+    ')'  shift, and go to state 67
+
+
+State 43
+
+   14 BoolExp: BoolExpOr .
+   15 BoolExpOr: BoolExpOr . OR BoolVal
+
+    OR  shift, and go to state 68
+
+    $default  reduce using rule 14 (BoolExp)
+
+
+State 44
+
+   16 BoolExpOr: BoolVal .
+
+    $default  reduce using rule 16 (BoolExpOr)
+
+
+State 45
+
+   22 RelationalExp: Integer . SMALLER_OR_EQ Integer
+   23              | Integer . GREATER_OR_EQ Integer
+   24              | Integer . EQ Integer
+   25              | Integer . NOT_EQ Integer
+   26              | Integer . GREATER_THAN Integer
+   27              | Integer . SMALLER_THAN Integer
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   45 Unit: '(' Integer . ')'
+   46     | Integer .
+
+    SMALLER_OR_EQ  shift, and go to state 49
+    GREATER_OR_EQ  shift, and go to state 50
+    GREATER_THAN   shift, and go to state 51
+    SMALLER_THAN   shift, and go to state 52
+    EQ             shift, and go to state 53
+    NOT_EQ         shift, and go to state 54
+    ')'            shift, and go to state 69
+    '+'            shift, and go to state 55
+    '-'            shift, and go to state 56
+
+    SMALLER_OR_EQ  [reduce using rule 46 (Unit)]
+    GREATER_OR_EQ  [reduce using rule 46 (Unit)]
+    GREATER_THAN   [reduce using rule 46 (Unit)]
+    SMALLER_THAN   [reduce using rule 46 (Unit)]
+    EQ             [reduce using rule 46 (Unit)]
+    NOT_EQ         [reduce using rule 46 (Unit)]
+    ')'            [reduce using rule 46 (Unit)]
+    '+'            [reduce using rule 46 (Unit)]
+    '-'            [reduce using rule 46 (Unit)]
+    $default       reduce using rule 46 (Unit)
+
+
+State 46
+
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    $default  reduce using rule 46 (Unit)
+
+
+State 47
+
+   41 Term: Unit .
+   43 Unit: '-' Unit .
+
+    AND                reduce using rule 41 (Term)
+    AND                [reduce using rule 43 (Unit)]
+    OR                 reduce using rule 41 (Term)
+    OR                 [reduce using rule 43 (Unit)]
+    SMALLER_OR_EQ      reduce using rule 41 (Term)
+    SMALLER_OR_EQ      [reduce using rule 43 (Unit)]
+    GREATER_OR_EQ      reduce using rule 41 (Term)
+    GREATER_OR_EQ      [reduce using rule 43 (Unit)]
+    GREATER_THAN       reduce using rule 41 (Term)
+    GREATER_THAN       [reduce using rule 43 (Unit)]
+    SMALLER_THAN       reduce using rule 41 (Term)
+    SMALLER_THAN       [reduce using rule 43 (Unit)]
+    EQ                 reduce using rule 41 (Term)
+    EQ                 [reduce using rule 43 (Unit)]
+    NOT_EQ             reduce using rule 41 (Term)
+    NOT_EQ             [reduce using rule 43 (Unit)]
+    END                reduce using rule 41 (Term)
+    END                [reduce using rule 43 (Unit)]
+    CLOSE_PARENTHESIS  reduce using rule 41 (Term)
+    CLOSE_PARENTHESIS  [reduce using rule 43 (Unit)]
+    '{'                reduce using rule 41 (Term)
+    '{'                [reduce using rule 43 (Unit)]
+    ')'                reduce using rule 41 (Term)
+    ')'                [reduce using rule 43 (Unit)]
+    '+'                reduce using rule 41 (Term)
+    '+'                [reduce using rule 43 (Unit)]
+    '-'                reduce using rule 41 (Term)
+    '-'                [reduce using rule 43 (Unit)]
+    '*'                reduce using rule 41 (Term)
+    '*'                [reduce using rule 43 (Unit)]
+    '/'                reduce using rule 41 (Term)
+    '/'                [reduce using rule 43 (Unit)]
+    '%'                reduce using rule 41 (Term)
+    '%'                [reduce using rule 43 (Unit)]
+    $default           reduce using rule 41 (Term)
+
+
+State 48
+
+    9 IfStatement: IF BoolVal '{' . Program '}'
+
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+
+    Program         go to state 70
+    Statement       go to state 8
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 49
+
+   22 RelationalExp: Integer SMALLER_OR_EQ . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 71
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 50
+
+   23 RelationalExp: Integer GREATER_OR_EQ . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 72
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 51
+
+   26 RelationalExp: Integer GREATER_THAN . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 73
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 52
+
+   27 RelationalExp: Integer SMALLER_THAN . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 74
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 53
+
+   24 RelationalExp: Integer EQ . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 75
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 54
+
+   25 RelationalExp: Integer NOT_EQ . Integer
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 76
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 55
+
+   35 Integer: Integer '+' . Term
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 77
+    Unit     go to state 27
+
+
+State 56
+
+   36 Integer: Integer '-' . Term
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 78
+    Unit     go to state 27
+
+
+State 57
+
+   38 Term: Term '*' . Unit
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 26
+    Unit     go to state 79
+
+
+State 58
+
+   39 Term: Term '/' . Unit
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 26
+    Unit     go to state 80
+
+
+State 59
+
+   40 Term: Term '%' . Unit
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 46
+    Term     go to state 26
+    Unit     go to state 81
+
+
+State 60
+
+   10 WhileStatement: WHILE BoolVal '{' . Program '}'
+
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+
+    Program         go to state 82
+    Statement       go to state 8
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 61
+
+   47 GateApply: GATE OPEN_PARENTHESIS ID . Integer CLOSE_PARENTHESIS
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    '('     shift, and go to state 39
+    '-'     shift, and go to state 22
+
+    Integer  go to state 83
+    Term     go to state 26
+    Unit     go to state 27
+
+
+State 62
+
+   31 QbitValues: '0' . QbitValues
+   33           | '0' .
+
+    '0'  shift, and go to state 62
+    '1'  shift, and go to state 63
+
+    $default  reduce using rule 33 (QbitValues)
+
+    QbitValues  go to state 84
+
+
+State 63
+
+   32 QbitValues: '1' . QbitValues
+   34           | '1' .
+
+    '0'  shift, and go to state 62
+    '1'  shift, and go to state 63
+
+    $default  reduce using rule 34 (QbitValues)
+
+    QbitValues  go to state 85
+
+
+State 64
+
+   30 Definition: ID ASSIGN PIPE QbitValues . GREATER_THAN
+
+    GREATER_THAN  shift, and go to state 86
+
+
+State 65
+
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   45 Unit: '(' Integer . ')'
+   46     | Integer .
+
+    ')'  shift, and go to state 69
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    $default  reduce using rule 46 (Unit)
+
+
+State 66
+
+   13 BoolExp: BoolExp AND . BoolExpOr
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolExpOr      go to state 87
+    BoolVal        go to state 44
+    RelationalExp  go to state 24
+    Integer        go to state 25
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 67
+
+   17 BoolVal: '(' BoolExp ')' .
+
+    $default  reduce using rule 17 (BoolVal)
+
+
+State 68
+
+   15 BoolExpOr: BoolExpOr OR . BoolVal
+
+    ID      shift, and go to state 16
+    NUMBER  shift, and go to state 17
+    TRUE    shift, and go to state 18
+    FALSE   shift, and go to state 19
+    NOT     shift, and go to state 20
+    '('     shift, and go to state 21
+    '-'     shift, and go to state 22
+
+    BoolVal        go to state 88
+    RelationalExp  go to state 24
+    Integer        go to state 25
+    Term           go to state 26
+    Unit           go to state 27
+
+
+State 69
+
+   45 Unit: '(' Integer ')' .
+
+    $default  reduce using rule 45 (Unit)
+
+
+State 70
+
+    2 Program: Program . Statement
+    9 IfStatement: IF BoolVal '{' Program . '}'
+
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+    '}'    shift, and go to state 89
+
+    Statement       go to state 33
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 71
+
+   22 RelationalExp: Integer SMALLER_OR_EQ Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 22 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 22 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 22 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 22 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 22 (RelationalExp)
+
+
+State 72
+
+   23 RelationalExp: Integer GREATER_OR_EQ Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 23 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 23 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 23 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 23 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 23 (RelationalExp)
+
+
+State 73
+
+   26 RelationalExp: Integer GREATER_THAN Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 26 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 26 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 26 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 26 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 26 (RelationalExp)
+
+
+State 74
+
+   27 RelationalExp: Integer SMALLER_THAN Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 27 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 27 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 27 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 27 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 27 (RelationalExp)
+
+
+State 75
+
+   24 RelationalExp: Integer EQ Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 24 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 24 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 24 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 24 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 24 (RelationalExp)
+
+
+State 76
+
+   25 RelationalExp: Integer NOT_EQ Integer .
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+
+    '+'  shift, and go to state 55
+    '-'  shift, and go to state 56
+
+    AND       reduce using rule 25 (RelationalExp)
+    AND       [reduce using rule 46 (Unit)]
+    OR        reduce using rule 25 (RelationalExp)
+    OR        [reduce using rule 46 (Unit)]
+    '{'       reduce using rule 25 (RelationalExp)
+    '{'       [reduce using rule 46 (Unit)]
+    ')'       reduce using rule 25 (RelationalExp)
+    ')'       [reduce using rule 46 (Unit)]
+    '+'       [reduce using rule 46 (Unit)]
+    '-'       [reduce using rule 46 (Unit)]
+    '*'       reduce using rule 46 (Unit)
+    '/'       reduce using rule 46 (Unit)
+    '%'       reduce using rule 46 (Unit)
+    $default  reduce using rule 25 (RelationalExp)
+
+
+State 77
+
+   35 Integer: Integer '+' Term .
+   37        | Term .
+   38 Term: Term . '*' Unit
+   39     | Term . '/' Unit
+   40     | Term . '%' Unit
+
+    '*'  shift, and go to state 57
+    '/'  shift, and go to state 58
+    '%'  shift, and go to state 59
+
+    AND                reduce using rule 35 (Integer)
+    AND                [reduce using rule 37 (Integer)]
+    OR                 reduce using rule 35 (Integer)
+    OR                 [reduce using rule 37 (Integer)]
+    SMALLER_OR_EQ      reduce using rule 35 (Integer)
+    SMALLER_OR_EQ      [reduce using rule 37 (Integer)]
+    GREATER_OR_EQ      reduce using rule 35 (Integer)
+    GREATER_OR_EQ      [reduce using rule 37 (Integer)]
+    GREATER_THAN       reduce using rule 35 (Integer)
+    GREATER_THAN       [reduce using rule 37 (Integer)]
+    SMALLER_THAN       reduce using rule 35 (Integer)
+    SMALLER_THAN       [reduce using rule 37 (Integer)]
+    EQ                 reduce using rule 35 (Integer)
+    EQ                 [reduce using rule 37 (Integer)]
+    NOT_EQ             reduce using rule 35 (Integer)
+    NOT_EQ             [reduce using rule 37 (Integer)]
+    END                reduce using rule 35 (Integer)
+    END                [reduce using rule 37 (Integer)]
+    CLOSE_PARENTHESIS  reduce using rule 35 (Integer)
+    CLOSE_PARENTHESIS  [reduce using rule 37 (Integer)]
+    '{'                reduce using rule 35 (Integer)
+    '{'                [reduce using rule 37 (Integer)]
+    ')'                reduce using rule 35 (Integer)
+    ')'                [reduce using rule 37 (Integer)]
+    '+'                reduce using rule 35 (Integer)
+    '+'                [reduce using rule 37 (Integer)]
+    '-'                reduce using rule 35 (Integer)
+    '-'                [reduce using rule 37 (Integer)]
+    '*'                [reduce using rule 35 (Integer)]
+    '*'                [reduce using rule 37 (Integer)]
+    '/'                [reduce using rule 35 (Integer)]
+    '/'                [reduce using rule 37 (Integer)]
+    '%'                [reduce using rule 35 (Integer)]
+    '%'                [reduce using rule 37 (Integer)]
+    $default           reduce using rule 35 (Integer)
+
+
+State 78
+
+   36 Integer: Integer '-' Term .
+   37        | Term .
+   38 Term: Term . '*' Unit
+   39     | Term . '/' Unit
+   40     | Term . '%' Unit
+
+    '*'  shift, and go to state 57
+    '/'  shift, and go to state 58
+    '%'  shift, and go to state 59
+
+    AND                reduce using rule 36 (Integer)
+    AND                [reduce using rule 37 (Integer)]
+    OR                 reduce using rule 36 (Integer)
+    OR                 [reduce using rule 37 (Integer)]
+    SMALLER_OR_EQ      reduce using rule 36 (Integer)
+    SMALLER_OR_EQ      [reduce using rule 37 (Integer)]
+    GREATER_OR_EQ      reduce using rule 36 (Integer)
+    GREATER_OR_EQ      [reduce using rule 37 (Integer)]
+    GREATER_THAN       reduce using rule 36 (Integer)
+    GREATER_THAN       [reduce using rule 37 (Integer)]
+    SMALLER_THAN       reduce using rule 36 (Integer)
+    SMALLER_THAN       [reduce using rule 37 (Integer)]
+    EQ                 reduce using rule 36 (Integer)
+    EQ                 [reduce using rule 37 (Integer)]
+    NOT_EQ             reduce using rule 36 (Integer)
+    NOT_EQ             [reduce using rule 37 (Integer)]
+    END                reduce using rule 36 (Integer)
+    END                [reduce using rule 37 (Integer)]
+    CLOSE_PARENTHESIS  reduce using rule 36 (Integer)
+    CLOSE_PARENTHESIS  [reduce using rule 37 (Integer)]
+    '{'                reduce using rule 36 (Integer)
+    '{'                [reduce using rule 37 (Integer)]
+    ')'                reduce using rule 36 (Integer)
+    ')'                [reduce using rule 37 (Integer)]
+    '+'                reduce using rule 36 (Integer)
+    '+'                [reduce using rule 37 (Integer)]
+    '-'                reduce using rule 36 (Integer)
+    '-'                [reduce using rule 37 (Integer)]
+    '*'                [reduce using rule 36 (Integer)]
+    '*'                [reduce using rule 37 (Integer)]
+    '/'                [reduce using rule 36 (Integer)]
+    '/'                [reduce using rule 37 (Integer)]
+    '%'                [reduce using rule 36 (Integer)]
+    '%'                [reduce using rule 37 (Integer)]
+    $default           reduce using rule 36 (Integer)
+
+
+State 79
+
+   38 Term: Term '*' Unit .
+   41     | Unit .
+
+    AND                reduce using rule 38 (Term)
+    AND                [reduce using rule 41 (Term)]
+    OR                 reduce using rule 38 (Term)
+    OR                 [reduce using rule 41 (Term)]
+    SMALLER_OR_EQ      reduce using rule 38 (Term)
+    SMALLER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_OR_EQ      reduce using rule 38 (Term)
+    GREATER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_THAN       reduce using rule 38 (Term)
+    GREATER_THAN       [reduce using rule 41 (Term)]
+    SMALLER_THAN       reduce using rule 38 (Term)
+    SMALLER_THAN       [reduce using rule 41 (Term)]
+    EQ                 reduce using rule 38 (Term)
+    EQ                 [reduce using rule 41 (Term)]
+    NOT_EQ             reduce using rule 38 (Term)
+    NOT_EQ             [reduce using rule 41 (Term)]
+    END                reduce using rule 38 (Term)
+    END                [reduce using rule 41 (Term)]
+    CLOSE_PARENTHESIS  reduce using rule 38 (Term)
+    CLOSE_PARENTHESIS  [reduce using rule 41 (Term)]
+    '{'                reduce using rule 38 (Term)
+    '{'                [reduce using rule 41 (Term)]
+    ')'                reduce using rule 38 (Term)
+    ')'                [reduce using rule 41 (Term)]
+    '+'                reduce using rule 38 (Term)
+    '+'                [reduce using rule 41 (Term)]
+    '-'                reduce using rule 38 (Term)
+    '-'                [reduce using rule 41 (Term)]
+    '*'                reduce using rule 38 (Term)
+    '*'                [reduce using rule 41 (Term)]
+    '/'                reduce using rule 38 (Term)
+    '/'                [reduce using rule 41 (Term)]
+    '%'                reduce using rule 38 (Term)
+    '%'                [reduce using rule 41 (Term)]
+    $default           reduce using rule 38 (Term)
+
+
+State 80
+
+   39 Term: Term '/' Unit .
+   41     | Unit .
+
+    AND                reduce using rule 39 (Term)
+    AND                [reduce using rule 41 (Term)]
+    OR                 reduce using rule 39 (Term)
+    OR                 [reduce using rule 41 (Term)]
+    SMALLER_OR_EQ      reduce using rule 39 (Term)
+    SMALLER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_OR_EQ      reduce using rule 39 (Term)
+    GREATER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_THAN       reduce using rule 39 (Term)
+    GREATER_THAN       [reduce using rule 41 (Term)]
+    SMALLER_THAN       reduce using rule 39 (Term)
+    SMALLER_THAN       [reduce using rule 41 (Term)]
+    EQ                 reduce using rule 39 (Term)
+    EQ                 [reduce using rule 41 (Term)]
+    NOT_EQ             reduce using rule 39 (Term)
+    NOT_EQ             [reduce using rule 41 (Term)]
+    END                reduce using rule 39 (Term)
+    END                [reduce using rule 41 (Term)]
+    CLOSE_PARENTHESIS  reduce using rule 39 (Term)
+    CLOSE_PARENTHESIS  [reduce using rule 41 (Term)]
+    '{'                reduce using rule 39 (Term)
+    '{'                [reduce using rule 41 (Term)]
+    ')'                reduce using rule 39 (Term)
+    ')'                [reduce using rule 41 (Term)]
+    '+'                reduce using rule 39 (Term)
+    '+'                [reduce using rule 41 (Term)]
+    '-'                reduce using rule 39 (Term)
+    '-'                [reduce using rule 41 (Term)]
+    '*'                reduce using rule 39 (Term)
+    '*'                [reduce using rule 41 (Term)]
+    '/'                reduce using rule 39 (Term)
+    '/'                [reduce using rule 41 (Term)]
+    '%'                reduce using rule 39 (Term)
+    '%'                [reduce using rule 41 (Term)]
+    $default           reduce using rule 39 (Term)
+
+
+State 81
+
+   40 Term: Term '%' Unit .
+   41     | Unit .
+
+    AND                reduce using rule 40 (Term)
+    AND                [reduce using rule 41 (Term)]
+    OR                 reduce using rule 40 (Term)
+    OR                 [reduce using rule 41 (Term)]
+    SMALLER_OR_EQ      reduce using rule 40 (Term)
+    SMALLER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_OR_EQ      reduce using rule 40 (Term)
+    GREATER_OR_EQ      [reduce using rule 41 (Term)]
+    GREATER_THAN       reduce using rule 40 (Term)
+    GREATER_THAN       [reduce using rule 41 (Term)]
+    SMALLER_THAN       reduce using rule 40 (Term)
+    SMALLER_THAN       [reduce using rule 41 (Term)]
+    EQ                 reduce using rule 40 (Term)
+    EQ                 [reduce using rule 41 (Term)]
+    NOT_EQ             reduce using rule 40 (Term)
+    NOT_EQ             [reduce using rule 41 (Term)]
+    END                reduce using rule 40 (Term)
+    END                [reduce using rule 41 (Term)]
+    CLOSE_PARENTHESIS  reduce using rule 40 (Term)
+    CLOSE_PARENTHESIS  [reduce using rule 41 (Term)]
+    '{'                reduce using rule 40 (Term)
+    '{'                [reduce using rule 41 (Term)]
+    ')'                reduce using rule 40 (Term)
+    ')'                [reduce using rule 41 (Term)]
+    '+'                reduce using rule 40 (Term)
+    '+'                [reduce using rule 41 (Term)]
+    '-'                reduce using rule 40 (Term)
+    '-'                [reduce using rule 41 (Term)]
+    '*'                reduce using rule 40 (Term)
+    '*'                [reduce using rule 41 (Term)]
+    '/'                reduce using rule 40 (Term)
+    '/'                [reduce using rule 41 (Term)]
+    '%'                reduce using rule 40 (Term)
+    '%'                [reduce using rule 41 (Term)]
+    $default           reduce using rule 40 (Term)
+
+
+State 82
+
+    2 Program: Program . Statement
+   10 WhileStatement: WHILE BoolVal '{' Program . '}'
+
+    ID     shift, and go to state 1
+    EXIT   shift, and go to state 2
+    IF     shift, and go to state 3
+    WHILE  shift, and go to state 4
+    PRINT  shift, and go to state 5
+    GATE   shift, and go to state 6
+    '}'    shift, and go to state 90
+
+    Statement       go to state 33
+    IfStatement     go to state 9
+    WhileStatement  go to state 10
+    PrintStatement  go to state 11
+    Definition      go to state 12
+    GateApply       go to state 13
+
+
+State 83
+
+   35 Integer: Integer . '+' Term
+   36        | Integer . '-' Term
+   46 Unit: Integer .
+   47 GateApply: GATE OPEN_PARENTHESIS ID Integer . CLOSE_PARENTHESIS
+
+    CLOSE_PARENTHESIS  shift, and go to state 91
+    '+'                shift, and go to state 55
+    '-'                shift, and go to state 56
+
+    CLOSE_PARENTHESIS  [reduce using rule 46 (Unit)]
+    '+'                [reduce using rule 46 (Unit)]
+    '-'                [reduce using rule 46 (Unit)]
+    $default           reduce using rule 46 (Unit)
+
+
+State 84
+
+   31 QbitValues: '0' QbitValues .
+
+    $default  reduce using rule 31 (QbitValues)
+
+
+State 85
+
+   32 QbitValues: '1' QbitValues .
+
+    $default  reduce using rule 32 (QbitValues)
+
+
+State 86
+
+   30 Definition: ID ASSIGN PIPE QbitValues GREATER_THAN .
+
+    $default  reduce using rule 30 (Definition)
+
+
+State 87
+
+   13 BoolExp: BoolExp AND BoolExpOr .
+   15 BoolExpOr: BoolExpOr . OR BoolVal
+
+    OR  shift, and go to state 68
+
+    $default  reduce using rule 13 (BoolExp)
+
+
+State 88
+
+   15 BoolExpOr: BoolExpOr OR BoolVal .
+
+    $default  reduce using rule 15 (BoolExpOr)
+
+
+State 89
+
+    9 IfStatement: IF BoolVal '{' Program '}' .
+
+    $default  reduce using rule 9 (IfStatement)
+
+
+State 90
+
+   10 WhileStatement: WHILE BoolVal '{' Program '}' .
+
+    $default  reduce using rule 10 (WhileStatement)
+
+
+State 91
+
+   47 GateApply: GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS .
+
+    $default  reduce using rule 47 (GateApply)
