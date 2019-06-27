@@ -17,6 +17,8 @@ int yywrap()
         return 1;
 }
 
+#define STRING_LEN 6
+#define SPACE_LEN 1
 %}
 
 %union {
@@ -27,7 +29,7 @@ int yywrap()
 }
 %start Program
 /* all Vt announced here */
-%token <id> ID
+%token <string> ID
 %token <value> NUMBER
 %token <value> TRUE
 %token <value> FALSE
@@ -74,12 +76,22 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Statement {fputs($1, yyout);}
-    | Program Statement {fputs($2, yyout);}
+Program : Statement {
+        fputs($1, yyout);
+        }
+    | Program Statement {
+        // fputs($2, yyout);
+        }
     ;
 
-Statement : Definition END {$$ = malloc(strlen($1) + 1);
+Statement : Definition END {
+                    // printf("HOLAA VIEJA %s\n", $1);
+                    // printf("Length: %d\n", strlen($1));
+                    int length = strlen($1) + 1;
+                    $$ = malloc(length);
+                    $$[length] = '\0';
                      sprintf($$, "%s;", $1);
+                     printf("Tu vieja: %s\n", $$);
                      }
     | IfStatement {;}
     | WhileStatement {;}
@@ -128,7 +140,13 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 Definition : ID ASSIGN Integer {printf("Integer variable set with %d\n",$3);}
-        | ID ASSIGN STRING {printf("String variable set with %s\n", $3);}
+        | ID ASSIGN STRING {
+            int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
+            $$ = malloc(length);
+            $$[length] = '\0';
+            sprintf($$, "%s%s%c%s", "String ", $1, '=', $3);
+            // printf("String variable set with %s of length %d\n", $3, strlen($3));
+            }
         | ID ASSIGN PIPE QbitValues GREATER_THAN {
             $$ = malloc(4 + 27 + strlen($4));
             sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", $4);

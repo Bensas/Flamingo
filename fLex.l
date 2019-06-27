@@ -45,8 +45,9 @@ gate           (X|Y|Z|H|CNOT|ID)
 "Int"			{ return DECL_INT; }
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
+"exit"			{ return EXIT;}
 {number}        { yylval.value = atoi(yytext); return NUMBER; }
-{variableName}  { /*yylval.id = symlook(yytext);*/ return ID; }
+{variableName}  { yylval.string = strdup(yytext);/*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
 .				{ /* ignore other characters */ }
 

@@ -4,6 +4,7 @@
 GCC=gcc -g -pedantic -Wall
 YACC=yacc -d
 LEX=lex
+REMOVE=rm -f
 
 .PHONY: lex
 lex: lex.yy.c
@@ -12,7 +13,15 @@ lex: lex.yy.c
 yacc: y.tab.c
 
 .PHONY: all
-all: lex yacc flamingo
+all: lex yacc flamingo removeJava
+
+.PHONY: removeJava
+removeJava:
+	$(REMOVE) *.java
+
+.PHONY: removeClassFiles
+removeClassFiles:
+	$(REMOVE) *.class
 
 flamingo: lex.yy.c y.tab.c
 	$(GCC) lex.yy.c y.tab.c -o flamingompiler
