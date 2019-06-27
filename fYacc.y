@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "parser.h"
 int yylex();
 void yyerror(const char *str)
 {
@@ -58,10 +59,11 @@ int yywrap()
 %token MULTIPLY
 %token DIVIDE
 %token MODULO
-%token GATE
+%token <gate> GATE
 %token MEASURE
 
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
+%type <string> GateApply
 
 %%
 
@@ -78,6 +80,7 @@ Statement : Definition END {;}
     | EXIT END {exit(0);}
     | WhileStatement {;}
     | PrintStatement END {;}
+    | GateApply END {;}
     ;
 
 IfStatement : IF BoolVal '{' Program '}' {;}
@@ -123,6 +126,8 @@ Definition : ID ASSIGN Integer {printf("Variable set with %d\n",$3);}
 
 QbitValues : '0' QbitValues {}
         | '1' QbitValues {}
+        | '0' {}
+        | '1' {}
         ;
 
 Integer :
@@ -147,28 +152,41 @@ Unit :
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
   GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
-      if (strcmp($1, "ID") == 0)
-          return;
-      $$ = malloc(strlen($3->name) + 
-        (strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35 + 
-        numofDigits($4));
+    printf("OOGABOOGA\n");
+      printf("%s", $1);
+      if (strcmp($1, "ID") != 0){
+          // printf("TUVIEJA 1 %s\n", $3->name);
+          // strlen($3->name);
+          // printf("TUVIEJA 2\n");
+          // strcmp($1, "H");
+          //             printf("TUVIEJA 3\n");
 
-      if (strcmp($1, "H") == 0){
-          sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d());\n", $3->name, $4);
-          break;
-      } else if (strcmp($1, "X") == 0){
-          sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D());\n", $3->name, $4);
-          break;
-      } else if (strcmp($1, "Y") == 0){
-          sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D());\n", $3->name, $4);
-          break;
-      } else if (strcmp($1, "Z") == 0){
-          sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D());\n", $3->name, $4);
-          break;
-      } else if (strcmp($1, "CNOT") == 0){
-          sprintf($$, "%s.applyGateToQbit(%d, new CNOT());\n", $3->name, $4);
-      }
-  }; 
+          $$ = malloc(strlen($3->name) + 
+          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
+          numOfDigits($4));
+          // printf("%d\n", strlen($3->name) + 
+          // ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
+          // numOfDigits($4));
+
+          if (strcmp($1, "H") == 0){
+              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d());\n", $3->name, $4);
+              printf("TUVIEJA 1\n");
+              break;
+          } else if (strcmp($1, "X") == 0){
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D());\n", $3->name, $4);
+              break;
+          } else if (strcmp($1, "Y") == 0){
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D());\n", $3->name, $4);
+              break;
+          } else if (strcmp($1, "Z") == 0){
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D());\n", $3->name, $4);
+              break;
+          } else if (strcmp($1, "CNOT") == 0){
+              sprintf($$, "%s.applyGateToQbit(%d, new CNOT());\n", $3->name, $4);
+          }
+      }      
+  }
+  ; 
 
 
 %%
