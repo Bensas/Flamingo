@@ -24,5 +24,4 @@ void warning(char *s, char *t);
 int yywrap();
 
 int numOfDigits(int n);
-int isValidBinaryNum(int n);
 #endif
