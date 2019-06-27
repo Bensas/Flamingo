@@ -119,15 +119,25 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
     | Integer SMALLER_THAN Integer {$$ = ($1 < $3)?1:0;}
     ;
 
+//State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 Definition : ID ASSIGN Integer {printf("Integer variable set with %d\n",$3);}
         | ID ASSIGN STRING {printf("String variable set with %s\n", $3);}
-        | ID ASSIGN PIPE QbitValues GREATER_THAN
+        | ID ASSIGN PIPE QbitValues GREATER_THAN {
+            $$ = malloc(strlen($1->name) + 27 + strlen($4));
+            sprintf($$, "%s = new State(new Qbit[]{%s});", $1, $4);
+        }
         ;
 
-QbitValues : '0' QbitValues {}
-        | '1' QbitValues {}
-        | '0' {}
-        | '1' {}
+QbitValues : '0' QbitValues {
+          $$ = malloc(27);
+          sprintf($$, "new Qbit[]{new Qbit(1, 0),");}
+        | '1' QbitValues {
+          $$ = malloc(27);
+          sprintf($$, "new Qbit[]{new Qbit(0, 1),");}
+        | '0' {$$ = malloc(26);
+              sprintf($$, "new Qbit[]{new Qbit(1, 0)");}
+        | '1' {$$ = malloc(26);
+              sprintf($$, "new Qbit[]{new Qbit(0, 1)");}
         ;
 
 Integer :
