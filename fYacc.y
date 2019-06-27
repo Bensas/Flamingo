@@ -3,6 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "parser.h"
+
+FILE *yyout;
+
 int yylex();
 void yyerror(const char *str)
 {
@@ -63,7 +66,7 @@ int yywrap()
 %token MEASURE
 
 %type <value> Integer Term Unit BoolExp BoolExpOr BoolVal RelationalExp
-%type <string> GateApply
+%type <string> GateApply QbitValues Definition Statement
 
 %%
 
@@ -71,15 +74,19 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Statement {;}
-    | Statement Program {;}
+Program : Statement {fputs($1, yyout);}
+    | Program Statement {fputs($2, yyout);}
     ;
 
-Statement : Definition END {;}
+Statement : Definition END {$$ = malloc(strlen($1) + 1);
+                     sprintf($$, "%s;", $1);
+                     }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {;}
-    | GateApply END {;}
+    | GateApply END {$$ = malloc(strlen($1) + 1);
+                     sprintf($$, "%s;", $1);
+                    }
     | EXIT END {exit(0);}
     ;
 
@@ -123,21 +130,23 @@ RelationalExp : Integer SMALLER_OR_EQ Integer {$$ = ($1 <= $3)?1:0;}
 Definition : ID ASSIGN Integer {printf("Integer variable set with %d\n",$3);}
         | ID ASSIGN STRING {printf("String variable set with %s\n", $3);}
         | ID ASSIGN PIPE QbitValues GREATER_THAN {
-            $$ = malloc(strlen($1->name) + 27 + strlen($4));
-            sprintf($$, "%s = new State(new Qbit[]{%s});", $1, $4);
+            $$ = malloc(4 + 27 + strlen($4));
+            sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", $4);
+            printf("Definitooon\n");
         }
         ;
 
 QbitValues : '0' QbitValues {
           $$ = malloc(27);
-          sprintf($$, "new Qbit[]{new Qbit(1, 0),");}
+          sprintf($$, "new Qbit[]{new Qbit(1, 0),");
+          printf("Qbit0\n");}
         | '1' QbitValues {
           $$ = malloc(27);
-          sprintf($$, "new Qbit[]{new Qbit(0, 1),");}
+          sprintf($$, "new Qbit[]{new Qbit(0, 1),");printf("Qbit1\n");}
         | '0' {$$ = malloc(26);
-              sprintf($$, "new Qbit[]{new Qbit(1, 0)");}
+              sprintf($$, "new Qbit[]{new Qbit(1, 0)");printf("Qbit0-2\n");}
         | '1' {$$ = malloc(26);
-              sprintf($$, "new Qbit[]{new Qbit(0, 1)");}
+              sprintf($$, "new Qbit[]{new Qbit(0, 1)");printf("Qbit1-2\n");}
         ;
 
 Integer :
@@ -162,38 +171,26 @@ Unit :
   ;
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
-  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS END { 
-    printf("OOGABOOGA\n");
-      printf("%s", $1);
+  GATE OPEN_PARENTHESIS ID Integer CLOSE_PARENTHESIS { 
       if (strcmp($1, "ID") != 0){
-          // printf("TUVIEJA 1 %s\n", $3->name);
-          // strlen($3->name);
-          // printf("TUVIEJA 2\n");
-          // strcmp($1, "H");
-          //             printf("TUVIEJA 3\n");
-
-          $$ = malloc(strlen($3->name) + 
+          $$ = malloc(4 + 
           ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
           numOfDigits($4));
-          // printf("%d\n", strlen($3->name) + 
-          // ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
-          // numOfDigits($4));
 
           if (strcmp($1, "H") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d());\n", $3->name, $4);
-              printf("TUVIEJA 1\n");
+              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", $4);
               break;
           } else if (strcmp($1, "X") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D());\n", $3->name, $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", $4);
               break;
           } else if (strcmp($1, "Y") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D());\n", $3->name, $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", $4);
               break;
           } else if (strcmp($1, "Z") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D());\n", $3->name, $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", $4);
               break;
           } else if (strcmp($1, "CNOT") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new CNOT());\n", $3->name, $4);
+              sprintf($$, "%s.applyGateToQbit(%d, new CNOT())", "hola", $4);
           }
       }      
   }
@@ -206,12 +203,12 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 int main(int argc, char **argv)
 {
-    char* head = "import quantum.State;\
-      import quantum.Qbit;\
-      import quantum.Gates.*;\
-      public class Main {\
-        public static void main(String[] args){";
-    char* tail = "}}";
+    char* head = "import quantum.State;\n\
+      import quantum.Qbit;\n\
+      import quantum.Gates.*\n\
+      public class Main {\n\
+        public static void main(String[] args){\n";
+    char* tail = "  }\n}\n";
     char *inputFile;
     char *outputFile;
     extern FILE *yyin, *yyout;

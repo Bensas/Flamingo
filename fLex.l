@@ -48,6 +48,6 @@ gate           (X|Y|Z|H|CNOT|ID)
 {number}        { yylval.value = atoi(yytext); return NUMBER; }
 {variableName}  { /*yylval.id = symlook(yytext);*/ return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
-.				{ /* ignorare other characters */ }
+.				{ /* ignore other characters */ }
 
 %%
