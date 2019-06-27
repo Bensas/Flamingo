@@ -75,7 +75,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply QbitValues Definition Statement
+%type <string> GateApply Definition Statement
 
 %%
 
@@ -84,23 +84,19 @@ int yywrap()
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
 Program : Statement {
-        // fputs($1, yyout);
+         fputs($1, yyout);
         }
     | Program Statement {
-        // fputs($2, yyout);
+         fputs($2, yyout);
         }
     ;
 
 Statement : Declaration END {;} 
     | Definition END {
-        // printf("HOLAA VIEJA %s\n", $1);
-        // printf("Length: %d\n", strlen($1));
         int length = strlen($1) + 1;
         $$ = malloc(length);
-        $$[length] = '\0';
-            sprintf($$, "%s;", $1);
-            printf("Tu vieja: %s\n", $$);
-            }
+        sprintf($$, "%s;", $1);
+        }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {;}
@@ -175,24 +171,21 @@ Definition : ID ASSIGN NumericExpression {
             sprintf($$, "%s%s%c%s", "String ", $1, '=', $3);
             // printf("String variable set with %s of length %d\n", $3, strlen($3));
             }
-        | ID ASSIGN PIPE QbitValues GREATER_THAN {
-            $$ = malloc(4 + 27 + strlen($4));
-            sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", $4);
-            printf("Definitooon\n");
+        | ID ASSIGN QBIT_STR {
+            char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
+			for (int i = 1; i < strlen($3)-1; i++){
+				if ($3[i] == '0')
+					strcat(qbitInitializations, "new Qbit(1, 0)");
+				else if ($3[i] == '1')
+					strcat(qbitInitializations, "new Qbit(0, 1)");
+				if (i != strlen($3) - 2)
+					strcat(qbitInitializations, ",");
+			}
+			$$ = malloc(4 + 27 + strlen(qbitInitializations));
+			sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", qbitInitializations);
+			printf("Definitooon\n");
+			free(qbitInitializations);	
         }
-        ;
-
-QbitValues : '0' QbitValues {
-          $$ = malloc(27);
-          sprintf($$, "new Qbit[]{new Qbit(1, 0),");
-          printf("Qbit0\n");}
-        | '1' QbitValues {
-          $$ = malloc(27);
-          sprintf($$, "new Qbit[]{new Qbit(0, 1),");printf("Qbit1\n");}
-        | '0' {$$ = malloc(26);
-              sprintf($$, "new Qbit[]{new Qbit(1, 0)");printf("Qbit0-2\n");}
-        | '1' {$$ = malloc(26);
-              sprintf($$, "new Qbit[]{new Qbit(0, 1)");printf("Qbit1-2\n");}
         ;
 
 NumericExpression :
@@ -243,7 +236,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
               sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "CNOT") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new CNOT())", "hola", (int)$4.value);
+              sprintf($$, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
           }
       }      
   }
