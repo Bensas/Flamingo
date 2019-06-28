@@ -192,6 +192,14 @@ Declaration : DECL_INT ID {
 
 Definition : ID ASSIGN NumericExpression {
             // $1 refers to ID 
+            if(!is_declared($1)){
+                printf("%s was not declared before\n",$1);
+                update_sym_table($1,(any_t)&($3)); // Fix this !
+            }
+            else{
+                printf("%s was declared before\n",$1);
+                update_sym_table($1,(any_t)&($3)); // Fix this !
+            }
             printf("NumericExpression variable set with %f\n",$3.value);
             int length = 0;
             if($3.type == INTEGER_TYPE) {
