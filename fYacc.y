@@ -165,21 +165,25 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
+            exit_program_if_variable_was_declared($2->name);
             $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2->name));
         	sprintf($$, "int %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_FLOAT ID {
+            exit_program_if_variable_was_declared($2->name);
             $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name));
         	sprintf($$, "float %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
+            exit_program_if_variable_was_declared($2->name);
             $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2->name));
         	sprintf($$, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
+            exit_program_if_variable_was_declared($2->name);
         	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2->name));
         	sprintf($$, "State %s", $2->name);
             printf("Fue una declaracion\n");
@@ -399,4 +403,11 @@ int numOfDigits(int n){
 		result++;
 	}
 	return result;
+}
+
+void exit_program_if_variable_was_declared(char * id){
+    if(!is_declared(id)){
+        yyerror("Error\n");
+        exit(1);
+    }
 }
