@@ -96,7 +96,7 @@ Program : Statement {
 
 Statement : Declaration END {
 		$$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1);
+        sprintf($$, "%s;", $1); // For some reason this is storing type type id = value;
     } 
     | Definition END {
         $$ = malloc(strlen($1) + 1);
