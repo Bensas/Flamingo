@@ -9,8 +9,8 @@
 %option noyywrap
 
 string		   \"[^\"]*\"
-integer 	   -?[0-9]+
-float          -?[0-9]+\.[0-9]+
+integer 	   [0-9]+
+float          [0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
 qbitString     \|[01]+>
