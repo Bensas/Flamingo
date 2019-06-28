@@ -317,7 +317,8 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define DEFAULT_OUTFILE "Main.java"
 
 int main(int argc, char **argv)
-{
+{   
+    init_parser();
 	char* head = "import quantum.State;\n\
 	  import quantum.Qbit;\n\
 	  import quantum.gates.*;\n\

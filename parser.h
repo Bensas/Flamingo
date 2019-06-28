@@ -21,7 +21,8 @@ struct sym
 //struct symtab *symlook();
 
 //void warning(char *s, char *t);
-int yywrap();
+void init_parser();
 int numOfDigits(int n);
+int yywrap();
 
 #endif

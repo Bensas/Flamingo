@@ -24,7 +24,7 @@ removeClassFiles:
 	$(REMOVE) *.class
 
 flamingo: lex.yy.c y.tab.c
-	$(GCC) lex.yy.c y.tab.c -o flamingompiler
+	$(GCC) lex.yy.c y.tab.c parser.c hashmap.c -o flamingompiler
 
 y.tab.c: fYacc.y
 	$(YACC) fYacc.y
