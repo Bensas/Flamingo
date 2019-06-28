@@ -78,7 +78,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Definition Statement
+%type <string> GateApply Definition Statement Declaration
 
 %%
 
@@ -94,12 +94,11 @@ Program : Statement {
         }
     ;
 
-Statement : Declaration END {;} 
-    | Definition END {
-        int length = strlen($1) + 1;
-        $$ = malloc(length);
-        sprintf($$, "%s;", $1);
-        }
+Statement : Declaration END {
+            int length = strlen($1) + 1;
+            $$ = malloc(length);
+            sprintf($$, "%s;", $1);
+            } 
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {;}
@@ -109,10 +108,12 @@ Statement : Declaration END {;}
     | EXIT END {exit(0);}
     ;
 
-IfStatement : IF BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
+IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE OPEN_BRACKET Program CLOSE_BRACKET {;}
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE IfStatement {;}
     ;
 
-WhileStatement : WHILE BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
+WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
     
 PrintStatement : PRINT STRING {printf("%s",$2);}
@@ -154,9 +155,17 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion\n");
         }
         | DECL_INT Definition {
+            
+            int length = strlen($2) + SPACE_LEN;
+            $$ = malloc(length);
+            sprintf($$, "int %s", $2);
             printf("Fue una declaracion con asignacion\n");
             }
         | DECL_STRING Definition {
+            int length = strlen($2) + SPACE_LEN;
+            $$ = malloc(length);
+            sprintf($$, "%s", $2);
+            printf("Fue una declaracion con asignacion\n");
             printf("Fue una declaracion con asignacion\n");
             }
         | DECL_REGISTER Definition {
