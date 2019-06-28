@@ -55,7 +55,7 @@ int yywrap()
 %token SMALLER_THAN
 %token EQ
 %token NOT_EQ
-%token EXIT
+%token <string> EXIT
 %token IF
 %token ELSE
 %token DO
@@ -78,7 +78,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Definition Declaration Statement
+%type <string> GateApply Definition Statement Declaration
 
 %%
 
@@ -89,7 +89,7 @@ int yywrap()
 Program : Statement {
          fputs($1, yyout);
         }
-    | Program Statement {
+        | Program Statement {
          fputs($2, yyout);
         }
     ;
@@ -111,10 +111,12 @@ Statement : Declaration END {
     | EXIT END {exit(0);}
     ;
 
-IfStatement : IF BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
+IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE OPEN_BRACKET Program CLOSE_BRACKET {;}
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE IfStatement {;}
     ;
 
-WhileStatement : WHILE BoolVal OPEN_BRACKET Program CLOSE_BRACKET {;}
+WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
     
 PrintStatement : PRINT STRING {printf("%s",$2);}
@@ -158,9 +160,15 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion\n");
         }
         | DECL_INT Definition {
+            int length = strlen($2) + SPACE_LEN;
+            $$ = malloc(length);
+            sprintf($$, "int %s", $2);
             printf("Fue una declaracion con asignacion\n");
             }
         | DECL_STRING Definition {
+            int length = strlen($2) + SPACE_LEN;
+            $$ = malloc(length);
+            sprintf($$, "%s", $2);
             printf("Fue una declaracion con asignacion\n");
             }
         | DECL_REGISTER Definition {
