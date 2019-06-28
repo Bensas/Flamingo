@@ -188,22 +188,31 @@ Declaration : DECL_INT ID {
         	sprintf($$, "State %s", $2->name);
             printf("Fue una declaracion\n");
         }
-        | DECL_INT Definition {
-            int length = strlen($2) + SPACE_LEN + INTEGER_LENGTH;
-            $$ = malloc(length);
-            sprintf($$, "int %s", $2);
+        | DECL_INT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
+            int length = 0;
+            if($4.type == INTEGER_TYPE) {
+                length = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value);
+                $$ = malloc(length);
+                sprintf($$, "%s %s=%d", "int", $2->name, (int)$4.value);
+            } else {
+                perror("Error: int to float\n");
+                exit(1);
             }
-        | DECL_FLOAT Definition {
+            printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+        }
+        | DECL_FLOAT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
             int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH;
             $$ = malloc(length);
             sprintf($$, "float %s", $2);
-            }
+        }
         | DECL_STRING Definition {
             int length = strlen($2) + SPACE_LEN;
             $$ = malloc(length);
             sprintf($$, "%s", $2);
             printf("Fue una declaracion con asignacion\n");
-            }
+        }
         | DECL_REGISTER Definition {
         	$$ = malloc(6 + strlen($2));
         	sprintf($$, "State ");
@@ -212,26 +221,12 @@ Declaration : DECL_INT ID {
         }
         ;
 
-Definition : ID ASSIGN NumericExpression {
-            printf("NumericExpression variable set with %f\n",$3.value);
-            int length = 0;
-            if($3.type == INTEGER_TYPE) {
-                length =  strlen($1->name) + 1 + numOfDigits((int)$3.value);
+Definition : ID ASSIGN STRING {
+                int length = STRING_LEN + SPACE_LEN + strlen($1->name) + 1 + strlen($3);
                 $$ = malloc(length);
-                sprintf($$, "%s%c%d", $1->name, '=', (int)$3.value);
-            } else {
-                length = strlen($1->name) + 1 + NUMBER_LENGTH;
-                $$ = malloc(length);
-                sprintf($$, "%s%c%f`", $1->name, '=', $3.value);
-            }
-            printf("%s\n", $$);
-            }
-        | ID ASSIGN STRING {
-            int length = STRING_LEN + SPACE_LEN + strlen($1->name) + 1 + strlen($3);
-            $$ = malloc(length);
-            $$[length] = '\0';
-            sprintf($$, "%s%c%s", $1->name, '=', $3);
-            // printf("String variable set with %s of length %d\n", $3, strlen($3));
+                $$[length] = '\0';
+                sprintf($$, "%s%c%s", $1->name, '=', $3);
+                // printf("String variable set with %s of length %d\n", $3, strlen($3));
             }
         | ID ASSIGN QBIT_STR {
             char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
@@ -406,7 +401,7 @@ int numOfDigits(int n){
 }
 
 void exit_program_if_variable_was_declared(char * id){
-    if(!is_declared(id)){
+    if(is_declared(id)){
         yyerror("Error\n");
         exit(1);
     }
