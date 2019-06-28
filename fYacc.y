@@ -124,7 +124,9 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
     
-PrintStatement : PRINT STRING {printf("%s",$2);}
+PrintStatement : PRINT STRING {$$ = malloc(20 + strlen($2));
+						sprintf($$, "System.out.println(%s)", $2);
+	}
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
 		// if ($2->type == TYPE_REG){
