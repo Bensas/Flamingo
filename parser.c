@@ -8,3 +8,5 @@ void init_parser()
 {
     map=hashmap_new();
 }
+
+
