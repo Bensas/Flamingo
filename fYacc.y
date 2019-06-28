@@ -78,7 +78,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Definition Statement
+%type <string> GateApply Definition Declaration Statement
 
 %%
 
@@ -94,12 +94,14 @@ Program : Statement {
         }
     ;
 
-Statement : Declaration END {;} 
-    | Definition END {
-        int length = strlen($1) + 1;
-        $$ = malloc(length);
+Statement : Declaration END {
+		$$ = malloc(strlen($1) + 1);
         sprintf($$, "%s;", $1);
-        }
+    } 
+    | Definition END {
+        $$ = malloc(strlen($1) + 1);
+        sprintf($$, "%s;", $1);
+    }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {;}
@@ -151,6 +153,8 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
+        	$$ = malloc(6 + strlen($2));
+        	sprintf($$, "State %s", $2);
             printf("Fue una declaracion\n");
         }
         | DECL_INT Definition {
@@ -160,6 +164,9 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion con asignacion\n");
             }
         | DECL_REGISTER Definition {
+        	$$ = malloc(6 + strlen($2));
+        	sprintf($$, "State ");
+        	sprintf($$, $2);
             printf("Fue una declaracion\n");
         }
         ;
@@ -293,7 +300,7 @@ int main(int argc, char **argv)
 {
 	char* head = "import quantum.State;\n\
 	  import quantum.Qbit;\n\
-	  import quantum.Gates.*\n\
+	  import quantum.gates.*;\n\
 	  public class Main {\n\
 		public static void main(String[] args){\n";
 	char* tail = "  }\n}\n";

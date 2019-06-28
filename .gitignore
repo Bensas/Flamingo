@@ -4,8 +4,8 @@
 *.o
 *.bin
 *.out
-*.java
-*.class
+Main.java
+Main.class
 
 # files created during Makefile
 flamingo
@@ -17,3 +17,6 @@ symbolTableTests
 
 # debugging
 *.dSYM
+
+#OS
+.DS_STORE
