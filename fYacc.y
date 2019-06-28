@@ -29,8 +29,14 @@ int yywrap()
   struct number {
       float value;
       enum type {INTEGER_TYPE, FLOAT_TYPE} type;
+      int resolvable;
+      char * text;
   } number;
-  int boolean;
+  struct boolean {
+      int value;
+      int resolvable;
+      char * text;
+  } boolean;
   char * string;
   char * gate;
   struct sym * id;
@@ -79,7 +85,7 @@ int yywrap()
 %token <string> QBIT_STR
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
-%type <number> NumericExpression Term Unit
+%type <number> NumericExpression Term Unit 
 %type <string> GateApply Definition Statement Declaration PrintStatement
 
 %%
@@ -139,27 +145,27 @@ PrintStatement : PRINT STRING {$$ = malloc(20 + strlen($2));
 		;}
 	;
 
-BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
-	| BoolExpOr {$$ = $1;}
+BoolExp : BoolExp AND BoolExpOr {$$.value = $1.value && $3.value;}
+	| BoolExpOr {$$.value = $1.value;}
 	;
 
-BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
-	| BoolVal {$$ = $1;}
+BoolExpOr : BoolExpOr OR BoolVal {$$.value = $1.value || $3.value;}
+	| BoolVal {$$.value = $1.value;}
 	;
 
-BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$ = $2;}
-    | NOT BoolVal {$$ = 1 - $2;}
-    | TRUE {$$ = 1;}
-    | FALSE {$$ = 0;}
-    | RelationalExp {$$ = $1;}
+BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$.value = $2.value;}
+    | NOT BoolVal {$$.value = 1 - $2.value;}
+    | TRUE {$$.value = 1;}
+    | FALSE {$$.value = 0;}
+    | RelationalExp {$$.value = $1.value;}
     ;
 
-RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.value <= $3.value)?1:0;}
-    | NumericExpression GREATER_OR_EQ NumericExpression {$$ = ($1.value >= $3.value)?1:0;}
-    | NumericExpression EQ NumericExpression {$$ = ($1.value == $3.value)?1:0;}
-    | NumericExpression NOT_EQ NumericExpression {$$ = ($1.value != $3.value)?1:0;}
-    | NumericExpression GREATER_THAN NumericExpression {$$ = ($1.value > $3.value)?1:0;}
-    | NumericExpression SMALLER_THAN NumericExpression {$$ = ($1.value < $3.value)?1:0;}
+RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$.value = ($1.value <= $3.value)?1:0;}
+    | NumericExpression GREATER_OR_EQ NumericExpression {$$.value = ($1.value >= $3.value)?1:0;}
+    | NumericExpression EQ NumericExpression {$$.value = ($1.value == $3.value)?1:0;}
+    | NumericExpression NOT_EQ NumericExpression {$$.value = ($1.value != $3.value)?1:0;}
+    | NumericExpression GREATER_THAN NumericExpression {$$.value = ($1.value > $3.value)?1:0;}
+    | NumericExpression SMALLER_THAN NumericExpression {$$.value = ($1.value < $3.value)?1:0;}
     ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
@@ -203,7 +209,7 @@ Declaration : DECL_INT ID {
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
             if($4.type == FLOAT_TYPE) {
-                int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
+                int length = strlen($2->name) + SPACE_LEN + FLOAT_LENGTH + 20;
                 $$ = malloc(length);
                 sprintf($$, "%s %s=%f", "float", $2->name, $4.value);
             } else {
@@ -257,7 +263,12 @@ NumericExpression :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value + $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = $1.value + $3.value;
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                        }
                         }
   | NumericExpression MINUS Term  {
                         if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
@@ -265,8 +276,22 @@ NumericExpression :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value - $3.value;}
-  | Term  {$$.type = $1.type;$$.value = $1.value;}
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = $1.value - $3.value;
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                        }
+                    }
+  | Term  {
+            $$.type = $1.type;
+            if($1.resolvable) {
+                $$.value = $1.value;
+                $$.resolvable = 1;
+            } else {
+                $$.resolvable = 0;
+            }
+        }
   ;
 
 Term :
@@ -276,7 +301,12 @@ Term :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value * $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = $1.value * $3.value;
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                        }
                         }
   | Term DIVIDE  Unit {
                         if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
@@ -284,25 +314,57 @@ Term :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value / $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = $1.value / $3.value;
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                        }
                       }
-  | Term MODULO  Unit {
-                        if($$.type != INTEGER_TYPE) {
+  | Term MODULO Unit {
+                        if($1.type != INTEGER_TYPE || $3.type != INTEGER_TYPE) {
                             perror("Type error when computing modular arithmetic\n");
                             exit(1);
                         }
-                        $$.value = (int)$1.value % (int)$3.value;
                         $$.type = INTEGER_TYPE;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = (int)$1.value % (int)$3.value;
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
                         }
-  | Unit {$$.type = $1.type;$$ = $1;}
+                        }
+  | Unit {$$.type = $1.type;
+          if($1.resolvable) {
+            $$.value = $1.value;
+            $$.resolvable = 1;
+          } else {
+              $$.resolvable = 0;
+          }
+        }
   ;
 
 Unit :
-  ID  {;}             /*FIXME: decidir esto despues */
-  | MINUS Unit {$$.type = $2.type ;$$.value = -$2.value;}
-  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
-  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type; $$.value = $2.value;}
+  ID  {$$.resolvable = 0;}             /*FIXME: decidir esto despues */
+  | MINUS Unit {
+      $$.type = $2.type;
+      if($2.resolvable) {
+        $$.value = -$2.value;
+        $$.resolvable = 1;
+      } else {
+          $$.resolvable = 0;
+      } 
+    }
+  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
+  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value;}
+  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
+                                                            if($2.resolvable) {
+                                                             $$.value = $2.value;
+                                                             $$.resolvable = 1;
+                                                            } else {
+                                                                $$.resolvable = 0;
+                                                            }
+                                                          }
   ;
 
 
