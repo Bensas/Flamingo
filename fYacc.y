@@ -33,10 +33,11 @@ int yywrap()
   int boolean;
   char * string;
   char * gate;
+  struct sym * id;
 }
 %start Program
 /* all Vt announced here */
-%token <string> ID
+%token <id> ID
 %token <number> INTEGER_NUMBER
 %token <number> FLOAT_NUMBER
 %token <boolean> TRUE
@@ -97,7 +98,7 @@ Program : Statement {
 
 Statement : Declaration END {
 		$$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1); // For some reason this is storing type type id = value;
+        sprintf($$, "%s;", $1);
     } 
     | Definition END {
         $$ = malloc(strlen($1) + 1);
@@ -164,23 +165,23 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
-            $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2));
-        	sprintf($$, "int %s", $2);
+            $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "int %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_FLOAT ID {
-            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2));
-        	sprintf($$, "float %s", $2);
+            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "float %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
-            $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2));
-        	sprintf($$, "String %s", $2);
+            $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-        	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2));
-        	sprintf($$, "State %s", $2);
+        	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "State %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_INT Definition {
@@ -208,33 +209,24 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-            // $1 refers to ID 
-            if(!is_declared($1)){
-                printf("%s was not declared before\n",$1);
-                update_sym_table($1,(any_t)&($3)); // Fix this !
-            }
-            else{
-                printf("%s was declared before\n",$1);
-                update_sym_table($1,(any_t)&($3)); // Fix this !
-            }
             printf("NumericExpression variable set with %f\n",$3.value);
             int length = 0;
             if($3.type == INTEGER_TYPE) {
-                length =  strlen($1) + 1 + numOfDigits((int)$3.value);
+                length =  strlen($1->name) + 1 + numOfDigits((int)$3.value);
                 $$ = malloc(length);
-                sprintf($$, "%s%c%d", $1, '=', (int)$3.value);
+                sprintf($$, "%s%c%d", $1->name, '=', (int)$3.value);
             } else {
-                length = strlen($1) + 1 + NUMBER_LENGTH;
+                length = strlen($1->name) + 1 + NUMBER_LENGTH;
                 $$ = malloc(length);
-                sprintf($$, "%s%c%f`", $1, '=', $3.value);
+                sprintf($$, "%s%c%f`", $1->name, '=', $3.value);
             }
             printf("%s\n", $$);
             }
         | ID ASSIGN STRING {
-            int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
+            int length = STRING_LEN + SPACE_LEN + strlen($1->name) + 1 + strlen($3);
             $$ = malloc(length);
             $$[length] = '\0';
-            sprintf($$, "%s%c%s", $1, '=', $3);
+            sprintf($$, "%s%c%s", $1->name, '=', $3);
             // printf("String variable set with %s of length %d\n", $3, strlen($3));
             }
         | ID ASSIGN QBIT_STR {

@@ -2,7 +2,7 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include "y.tab.h"
-	//#include "parser.h"
+	#include "parser.h"
 %}
 
 
@@ -51,7 +51,7 @@ qbitString     \|[01]+>
 "exit"			{ return EXIT;}
 {integer}       { yylval.number.value = atof(yytext); return INTEGER_NUMBER; }
 {float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
-{variableName}  { yylval.string = strdup(yytext); /*yylval.id = symlook(yytext);*/ return ID; }
+{variableName}  { yylval.id = symlook(yytext); return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
 {qbitString}	{ yylval.string = strdup(yytext); return QBIT_STR;}
 .				{ /* ignore other characters */ }

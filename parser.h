@@ -27,6 +27,6 @@ void update_sym_table(char * key, sym * value);
 sym * symlook(char * sym_name);
 
 int numOfDigits(int n);
-int yywrap();
+//int yywrap();
 
 #endif
