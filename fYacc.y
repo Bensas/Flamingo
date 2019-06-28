@@ -33,7 +33,6 @@ int yywrap()
   int boolean;
   char * string;
   char * gate;
-  struct symtab * id;
 }
 %start Program
 /* all Vt announced here */
