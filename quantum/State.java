@@ -45,7 +45,7 @@ public class State {
 
     public void printAmplitudes(){
         StringBuilder builder = new StringBuilder();
-        builder.append("MEASURE: ");
+        builder.append("Register amplitudes: ");
         for (int i = 0; i < components.length; i++){
             if (Complex.pow(components[i], 2).equals(new Complex(0)))
                 continue;

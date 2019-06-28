@@ -78,7 +78,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Definition Statement Declaration
+%type <string> GateApply Definition Statement Declaration PrintStatement
 
 %%
 
@@ -104,7 +104,10 @@ Statement : Declaration END {
     }
     | IfStatement {;}
     | WhileStatement {;}
-    | PrintStatement END {;}
+    | PrintStatement END {
+    	$$ = malloc(strlen($1) + 1);
+        sprintf($$, "%s;", $1);
+    }
     | GateApply END {$$ = malloc(strlen($1) + 1);
                      sprintf($$, "%s;", $1);
                     }
@@ -120,7 +123,16 @@ WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET P
     ;
     
 PrintStatement : PRINT STRING {printf("%s",$2);}
-	| PRINT ID {;}
+	| PRINT ID {
+		//This code will work once we have a structure for variables so we can typecheck
+		// if ($2->type == TYPE_REG){
+		// 	$$ = malloc(strlen($2->name) + 18);
+		// 	sprintf($$, "%s.printAmplitudes()", $2->name);
+		// } else {
+		// 	$$ = malloc(strlen($2->name) + 20);
+		// 	sprintf($$, "System.out.println(%s)", $2->name);
+		// }
+		;}
 	;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
