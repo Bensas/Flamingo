@@ -175,7 +175,6 @@ Declaration : DECL_INT ID {
             int length = strlen($2) + SPACE_LEN;
             $$ = malloc(length);
             sprintf($$, "int %s", $2);
-            printf("Fue una declaracion con asignacion\n");
             }
         | DECL_STRING Definition {
             int length = strlen($2) + SPACE_LEN;
@@ -192,6 +191,7 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
+            // $1 refers to ID 
             printf("NumericExpression variable set with %f\n",$3.value);
             int length = 0;
             if($3.type == INTEGER_TYPE) {
