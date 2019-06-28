@@ -45,6 +45,7 @@ qbitString     \|[01]+>
 "while"         { return WHILE; }
 "FLAMINGO"		{ return PRINT; }
 "Int"			{ return DECL_INT; }
+"Float"			{ return DECL_FLOAT; }
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 "exit"			{ return EXIT;}

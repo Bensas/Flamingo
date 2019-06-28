@@ -22,6 +22,7 @@ int yywrap()
 #define FLOAT_LENGTH 5
 #define SPACE_LEN 1
 #define NUMBER_LENGTH 15
+#define STATE_LEN 6
 %}
 
 %union {
@@ -43,6 +44,7 @@ int yywrap()
 %token <boolean> FALSE
 %token <string> STRING
 %token DECL_INT
+%token DECL_FLOAT
 %token DECL_STRING
 %token DECL_REGISTER
 %token ASSIGN
@@ -161,20 +163,34 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
+            $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2));
+        	sprintf($$, "int %s", $2);
+            printf("Fue una declaracion\n");
+        }
+        | DECL_FLOAT ID {
+            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2));
+        	sprintf($$, "float %s", $2);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
+            $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2));
+        	sprintf($$, "String %s", $2);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-        	$$ = malloc(6 + strlen($2));
+        	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2));
         	sprintf($$, "State %s", $2);
             printf("Fue una declaracion\n");
         }
         | DECL_INT Definition {
-            int length = strlen($2) + SPACE_LEN;
+            int length = strlen($2) + SPACE_LEN + INTEGER_LENGTH;
             $$ = malloc(length);
             sprintf($$, "int %s", $2);
+            }
+        | DECL_FLOAT Definition {
+            int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH;
+            $$ = malloc(length);
+            sprintf($$, "float %s", $2);
             }
         | DECL_STRING Definition {
             int length = strlen($2) + SPACE_LEN;
@@ -203,13 +219,13 @@ Definition : ID ASSIGN NumericExpression {
             printf("NumericExpression variable set with %f\n",$3.value);
             int length = 0;
             if($3.type == INTEGER_TYPE) {
-                length = INTEGER_LENGTH + SPACE_LEN + strlen($1) + 1 + numOfDigits((int)$3.value);
+                length =  strlen($1) + 1 + numOfDigits((int)$3.value);
                 $$ = malloc(length);
-                sprintf($$, "%s%s%c%d%c", "int ", $1, '=', (int)$3.value, '\0');
+                sprintf($$, "%s%c%d", $1, '=', (int)$3.value);
             } else {
-                length = FLOAT_LENGTH + SPACE_LEN + strlen($1) + 1 + NUMBER_LENGTH;
+                length = strlen($1) + 1 + NUMBER_LENGTH;
                 $$ = malloc(length);
-                sprintf($$, "%s%s%c%f%c", "float ", $1, '=', $3.value, '\0');
+                sprintf($$, "%s%c%f`", $1, '=', $3.value);
             }
             printf("%s\n", $$);
             }
@@ -217,7 +233,7 @@ Definition : ID ASSIGN NumericExpression {
             int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
             $$ = malloc(length);
             $$[length] = '\0';
-            sprintf($$, "%s%s%c%s", "String ", $1, '=', $3);
+            sprintf($$, "%s%c%s", $1, '=', $3);
             // printf("String variable set with %s of length %d\n", $3, strlen($3));
             }
         | ID ASSIGN QBIT_STR {
