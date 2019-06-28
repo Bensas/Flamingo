@@ -190,22 +190,27 @@ Declaration : DECL_INT ID {
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
-            int length = 0;
             if($4.type == INTEGER_TYPE) {
-                length = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value);
+                int length = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value);
                 $$ = malloc(length);
                 sprintf($$, "%s %s=%d", "int", $2->name, (int)$4.value);
             } else {
-                perror("Error: int to float\n");
+                perror("Error: Float to Int\n");
                 exit(1);
             }
             printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
-            int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH;
-            $$ = malloc(length);
-            sprintf($$, "float %s", $2);
+            if($4.type == FLOAT_TYPE) {
+                int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
+                $$ = malloc(length);
+                sprintf($$, "%s %s=%f", "float", $2->name, $4.value);
+            } else {
+                perror("Error: Int to Float");
+                exit(1);
+            }
+            printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
         }
         | DECL_STRING Definition {
             int length = strlen($2) + SPACE_LEN;
