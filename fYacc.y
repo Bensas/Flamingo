@@ -299,10 +299,10 @@ Term :
 
 Unit :
   ID  {;}             /*FIXME: decidir esto despues */
-  | '-' Unit {$$.type = $2.type ;$$.value = -$2.value;}
+  | MINUS Unit {$$.type = $2.type ;$$.value = -$2.value;}
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | '(' NumericExpression ')'  {$$.type = $2.type;$$.value = $2.value;}
+  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type; $$.value = $2.value;}
   ;
 
 
