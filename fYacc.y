@@ -99,7 +99,7 @@ Program : Statement {
 Statement : Declaration END {
 		$$ = malloc(strlen($1) + 1);
         sprintf($$, "%s;", $1);
-    } 
+    }
     | Definition END {
         $$ = malloc(strlen($1) + 1);
         sprintf($$, "%s;", $1);
@@ -123,7 +123,7 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
 
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
-    
+
 PrintStatement : PRINT STRING {$$ = malloc(20 + strlen($2));
 						sprintf($$, "System.out.println(%s)", $2);
 	}
@@ -246,7 +246,7 @@ Definition : ID ASSIGN NumericExpression {
 			$$ = malloc(4 + 27 + strlen(qbitInitializations));
 			sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", qbitInitializations);
 			printf("Definitooon\n");
-			free(qbitInitializations);	
+			free(qbitInitializations);
         }
         ;
 
@@ -299,18 +299,18 @@ Term :
 
 Unit :
   ID  {;}             /*FIXME: decidir esto despues */
-  | '-' Unit {$$.type = $2.type ;$$.value = -$2.value;}
+  |	MINUS	Unit {$$.type = $2.type ;$$.value = -$2.value;}
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | '(' NumericExpression ')'  {$$.type = $2.type;$$.value = $2.value;}
+  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;$$.value = $2.value;}
   ;
 
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
-  GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS { 
+  GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
       if (strcmp($1, "ID") != 0){
-          $$ = malloc(4 + 
-          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
+          $$ = malloc(4 +
+          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+
           numOfDigits((int)$4.value));
 
           if (strcmp($1, "H") == 0){
@@ -328,7 +328,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
           } else if (strcmp($1, "CNOT") == 0){
               sprintf($$, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
           }
-      }      
+      }
   }
   ;
 
@@ -338,7 +338,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define DEFAULT_OUTFILE "Main.java"
 
 int main(int argc, char **argv)
-{   
+{
     init_parser();
 	char* head = "import quantum.State;\n\
 	  import quantum.Qbit;\n\
@@ -362,7 +362,7 @@ int main(int argc, char **argv)
 		yyin = fopen(inputFile,"r");
 		if(yyin == NULL)
 		{
-			printf("Failed to open %s!", inputFile); 
+			printf("Failed to open %s!", inputFile);
 			exit(1);
 		}
 	}
