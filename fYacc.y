@@ -643,7 +643,7 @@ int num_of_digits(int n){
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        yyerror("Error\n");
+        yyerror("Symbol already in use\n");
         exit(1);
     }
 }
