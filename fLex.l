@@ -2,18 +2,19 @@
 	#include <stdio.h>
 	#include <stdlib.h>
 	#include "y.tab.h"
-	//#include "parser.h"
+	#include "parser.h"
 %}
 
 
 %option noyywrap
 
 string		   \"[^\"]*\"
-integer 	   -?[0-9]+
-float          -?[0-9]+\.[0-9]+
+integer 	   [0-9]+
+float          [0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
 qbitString     \|[01]+>
+comment		   \/\/.*\n
 
 %%
 "&&"			{ return AND; }
@@ -45,14 +46,16 @@ qbitString     \|[01]+>
 "while"         { return WHILE; }
 "FLAMINGO"		{ return PRINT; }
 "Int"			{ return DECL_INT; }
+"Float"			{ return DECL_FLOAT; }
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 "exit"			{ return EXIT;}
 {integer}       { yylval.number.value = atof(yytext); return INTEGER_NUMBER; }
 {float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
-{variableName}  { yylval.string = strdup(yytext);/*yylval.id = symlook(yytext);*/ return ID; }
+{variableName}  { yylval.id = symlook(yytext); return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
 {qbitString}	{ yylval.string = strdup(yytext); return QBIT_STR;}
+{comment}	 	{ ; }
 .				{ /* ignore other characters */ }
 
 %%

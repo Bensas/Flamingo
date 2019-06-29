@@ -22,6 +22,7 @@ int yywrap()
 #define FLOAT_LENGTH 5
 #define SPACE_LEN 1
 #define NUMBER_LENGTH 15
+#define STATE_LEN 6
 %}
 
 %union {
@@ -32,17 +33,18 @@ int yywrap()
   int boolean;
   char * string;
   char * gate;
-  struct symtab * id;
+  struct sym * id;
 }
 %start Program
 /* all Vt announced here */
-%token <string> ID
+%token <id> ID
 %token <number> INTEGER_NUMBER
 %token <number> FLOAT_NUMBER
 %token <boolean> TRUE
 %token <boolean> FALSE
 %token <string> STRING
 %token DECL_INT
+%token DECL_FLOAT
 %token DECL_STRING
 %token DECL_REGISTER
 %token ASSIGN
@@ -96,8 +98,8 @@ Program : Statement {
 
 Statement : Declaration END {
 		$$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1); // For some reason this is storing type type id = value;
-    } 
+        sprintf($$, "%s;", $1);
+    }
     | Definition END {
         $$ = malloc(strlen($1) + 1);
         sprintf($$, "%s;", $1);
@@ -121,7 +123,7 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
 
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
-    
+
 PrintStatement : PRINT STRING {$$ = malloc(20 + strlen($2));
 						sprintf($$, "System.out.println(%s)", $2);
 	}
@@ -163,27 +165,59 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
+            exit_program_if_variable_was_declared($2->name);
+            $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "int %s", $2->name);
+            printf("Fue una declaracion\n");
+        }
+        | DECL_FLOAT ID {
+            exit_program_if_variable_was_declared($2->name);
+            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "float %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
+            exit_program_if_variable_was_declared($2->name);
+            $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-        	$$ = malloc(6 + strlen($2));
-        	sprintf($$, "State %s", $2);
+            exit_program_if_variable_was_declared($2->name);
+        	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2->name));
+        	sprintf($$, "State %s", $2->name);
             printf("Fue una declaracion\n");
         }
-        | DECL_INT Definition {
-            int length = strlen($2) + SPACE_LEN;
-            $$ = malloc(length);
-            sprintf($$, "int %s", $2);
+        | DECL_INT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
+            if($4.type == INTEGER_TYPE) {
+                int length = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value);
+                $$ = malloc(length);
+                sprintf($$, "%s %s=%d", "int", $2->name, (int)$4.value);
+            } else {
+                perror("Error: Float to Int\n");
+                exit(1);
             }
+            printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+        }
+        | DECL_FLOAT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
+            if($4.type == FLOAT_TYPE) {
+                int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
+                $$ = malloc(length);
+                sprintf($$, "%s %s=%f", "float", $2->name, $4.value);
+            } else {
+                perror("Error: Int to Float");
+                exit(1);
+            }
+            printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
+        }
         | DECL_STRING Definition {
             int length = strlen($2) + SPACE_LEN;
             $$ = malloc(length);
             sprintf($$, "%s", $2);
             printf("Fue una declaracion con asignacion\n");
-            }
+        }
         | DECL_REGISTER Definition {
         	$$ = malloc(6 + strlen($2));
         	sprintf($$, "State ");
@@ -192,35 +226,12 @@ Declaration : DECL_INT ID {
         }
         ;
 
-Definition : ID ASSIGN NumericExpression {
-            // $1 refers to ID 
-            if(!is_declared($1)){
-                printf("%s was not declared before\n",$1);
-                update_sym_table($1,(any_t)&($3)); // Fix this !
-            }
-            else{
-                printf("%s was declared before\n",$1);
-                update_sym_table($1,(any_t)&($3)); // Fix this !
-            }
-            printf("NumericExpression variable set with %f\n",$3.value);
-            int length = 0;
-            if($3.type == INTEGER_TYPE) {
-                length = INTEGER_LENGTH + SPACE_LEN + strlen($1) + 1 + numOfDigits((int)$3.value);
+Definition : ID ASSIGN STRING {
+                int length = STRING_LEN + SPACE_LEN + strlen($1->name) + 1 + strlen($3);
                 $$ = malloc(length);
-                sprintf($$, "%s%s%c%d%c", "int ", $1, '=', (int)$3.value, '\0');
-            } else {
-                length = FLOAT_LENGTH + SPACE_LEN + strlen($1) + 1 + NUMBER_LENGTH;
-                $$ = malloc(length);
-                sprintf($$, "%s%s%c%f%c", "float ", $1, '=', $3.value, '\0');
-            }
-            printf("%s\n", $$);
-            }
-        | ID ASSIGN STRING {
-            int length = STRING_LEN + SPACE_LEN + strlen($1) + 1 + strlen($3);
-            $$ = malloc(length);
-            $$[length] = '\0';
-            sprintf($$, "%s%s%c%s", "String ", $1, '=', $3);
-            // printf("String variable set with %s of length %d\n", $3, strlen($3));
+                $$[length] = '\0';
+                sprintf($$, "%s%c%s", $1->name, '=', $3);
+                // printf("String variable set with %s of length %d\n", $3, strlen($3));
             }
         | ID ASSIGN QBIT_STR {
             char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
@@ -235,7 +246,7 @@ Definition : ID ASSIGN NumericExpression {
 			$$ = malloc(4 + 27 + strlen(qbitInitializations));
 			sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", qbitInitializations);
 			printf("Definitooon\n");
-			free(qbitInitializations);	
+			free(qbitInitializations);
         }
         ;
 
@@ -288,18 +299,18 @@ Term :
 
 Unit :
   ID  {;}             /*FIXME: decidir esto despues */
-  | '-' Unit {$$.type = $2.type ;$$.value = -$2.value;}
+  | MINUS Unit {$$.type = $2.type ;$$.value = -$2.value;}
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | '(' NumericExpression ')'  {$$.type = $2.type;$$.value = $2.value;}
+  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type; $$.value = $2.value;}
   ;
 
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
-  GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS { 
+  GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
       if (strcmp($1, "ID") != 0){
-          $$ = malloc(4 + 
-          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+ 
+          $$ = malloc(4 +
+          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+
           numOfDigits((int)$4.value));
 
           if (strcmp($1, "H") == 0){
@@ -317,7 +328,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
           } else if (strcmp($1, "CNOT") == 0){
               sprintf($$, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
           }
-      }      
+      }
   }
   ;
 
@@ -330,7 +341,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define TAIL "  }\n}\n"
 
 int main(int argc, char **argv)
-{   
+{
     init_parser();
 	char* head;
 	char* tail = TAIL;
@@ -366,7 +377,7 @@ int main(int argc, char **argv)
 		yyin = fopen(inputFile,"r");
 		if(yyin == NULL)
 		{
-			printf("Failed to open %s!", inputFile); 
+			printf("Failed to open %s!", inputFile);
 			exit(1);
 		}
 	} 
@@ -421,4 +432,11 @@ int numOfDigits(int n){
 		result++;
 	}
 	return result;
+}
+
+void exit_program_if_variable_was_declared(char * id){
+    if(is_declared(id)){
+        yyerror("Error\n");
+        exit(1);
+    }
 }
