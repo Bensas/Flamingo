@@ -29,7 +29,7 @@ void update_sym_table(char * key, sym * value)
 
 sym * symlook(char * sym_name)
 {
-    sym * sym_p=NULL;    
+    sym * sym_p=NULL;
     if(is_declared(sym_name)){
         hashmap_get(map, sym_name, (any_t *)sym_p);
     }
@@ -41,5 +41,3 @@ sym * symlook(char * sym_name)
     }
     return sym_p;
 }
-
-

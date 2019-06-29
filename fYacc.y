@@ -80,7 +80,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Definition Statement Declaration PrintStatement
+%type <string> GateApply Statement Declaration PrintStatement
 
 %%
 
@@ -97,22 +97,22 @@ Program : Statement {
     ;
 
 Statement : Declaration END {
-		$$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1);
-    }
-    | Definition END {
-        $$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1);
+		int len = strlen($1) + 1;
+		$$ = malloc(len);
+        snprintf($$,len, "%s;", $1);
     }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {
-    	$$ = malloc(strlen($1) + 1);
-        sprintf($$, "%s;", $1);
-    }
-    | GateApply END {$$ = malloc(strlen($1) + 1);
-                     sprintf($$, "%s;", $1);
-                    }
+			int len = strlen($1) + 1;
+    	$$ = malloc(len);
+        snprintf($$,len, "%s;", $1);
+    	}
+    | GateApply END {
+			int len = strlen($1) + 1;
+			$$ = malloc(len);
+    	snprintf($$,len, "%s;", $1);
+      }
     | EXIT END {exit(0);}
     ;
 
@@ -124,8 +124,10 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
     ;
 
-PrintStatement : PRINT STRING {$$ = malloc(20 + strlen($2));
-						sprintf($$, "System.out.println(%s)", $2);
+PrintStatement : PRINT STRING {
+		int len = 20 + strlen($2);
+		$$ = malloc(len);
+		snprintf($$,len, "System.out.println(%s)", $2);
 	}
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
@@ -165,88 +167,84 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
+					int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
-            $$ = malloc(INTEGER_LENGTH + SPACE_LEN + strlen($2->name));
-        	sprintf($$, "int %s", $2->name);
+            $$ = malloc(len);
+        	snprintf($$,len, "int %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_FLOAT ID {
+					int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
-            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name));
-        	sprintf($$, "float %s", $2->name);
+            $$ = malloc(len);
+        	snprintf($$,len, "float %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
+						int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
-            $$ = malloc(STRING_LEN + SPACE_LEN + strlen($2->name));
-        	sprintf($$, "String %s", $2->name);
+            $$ = malloc(len);
+        	snprintf($$,len, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
+					int len = STATE_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
-        	$$ = malloc(STATE_LEN + SPACE_LEN + strlen($2->name));
-        	sprintf($$, "State %s", $2->name);
+        	$$ = malloc(len);
+        	snprintf($$,len, "State %s", $2->name);
             printf("Fue una declaracion\n");
         }
-        | DECL_INT Definition {
-            int length = strlen($2) + SPACE_LEN + INTEGER_LENGTH;
-            $$ = malloc(length);
-            sprintf($$, "int %s", $2);
-            }
-        | DECL_FLOAT Definition {
-            int length = strlen($2) + SPACE_LEN + FLOAT_LENGTH;
-            $$ = malloc(length);
-            sprintf($$, "float %s", $2);
-            }
-        | DECL_STRING Definition {
-            int length = strlen($2) + SPACE_LEN;
-            $$ = malloc(length);
-            sprintf($$, "%s", $2);
-            printf("Fue una declaracion con asignacion\n");
-            }
-        | DECL_REGISTER Definition {
-        	$$ = malloc(6 + strlen($2));
-        	sprintf($$, "State ");
-        	sprintf($$, $2);
-            printf("Fue una declaracion\n");
-        }
-        ;
-
-Definition : ID ASSIGN NumericExpression {
-            printf("NumericExpression variable set with %f\n",$3.value);
-            int length = 0;
-            if($3.type == INTEGER_TYPE) {
-                length =  strlen($1->name) + 1 + numOfDigits((int)$3.value);
-                $$ = malloc(length);
-                sprintf($$, "%s%c%d", $1->name, '=', (int)$3.value);
+        | DECL_INT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
+            if($4.type == INTEGER_TYPE) {
+                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value) +1;
+                $$ = malloc(len);
+                snprintf($$,len, "%s %s=%d", "int", $2->name, (int)$4.value);
             } else {
-                length = strlen($1->name) + 1 + NUMBER_LENGTH;
-                $$ = malloc(length);
-                sprintf($$, "%s%c%f`", $1->name, '=', $3.value);
+                perror("Error: Float to Int\n");
+                exit(1);
             }
-            printf("%s\n", $$);
+            printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+        }
+        | DECL_FLOAT ID ASSIGN NumericExpression {
+            exit_program_if_variable_was_declared($2->name);
+            if($4.type == FLOAT_TYPE) {
+                int len = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
+                $$ = malloc(len);
+                snprintf($$,len, "%s %s=%f", "float", $2->name, $4.value);
+            } else {
+                perror("Error: Int to Float");
+                exit(1);
             }
-        | ID ASSIGN STRING {
-            int length = STRING_LEN + SPACE_LEN + strlen($1->name) + 1 + strlen($3);
-            $$ = malloc(length);
-            $$[length] = '\0';
-            sprintf($$, "%s%c%s", $1->name, '=', $3);
-            // printf("String variable set with %s of length %d\n", $3, strlen($3));
-            }
-        | ID ASSIGN QBIT_STR {
-            char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
-			for (int i = 1; i < strlen($3)-1; i++){
-				if ($3[i] == '0')
-					strcat(qbitInitializations, "new Qbit(1, 0)");
-				else if ($3[i] == '1')
-					strcat(qbitInitializations, "new Qbit(0, 1)");
-				if (i != strlen($3) - 2)
-					strcat(qbitInitializations, ",");
-			}
-			$$ = malloc(4 + 27 + strlen(qbitInitializations));
-			sprintf($$, "%s = new State(new Qbit[]{%s})", "hola", qbitInitializations);
-			printf("Definitooon\n");
-			free(qbitInitializations);
+            printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
+        }
+        | DECL_STRING ID ASSIGN STRING {
+						int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
+						$$ = malloc(len);
+						$$[len] = '\0';
+						snprintf($$,len, "%s%c%s", $2->name, '=', $4);
+            printf("Defined a string variable %s, value of %s\n", $$, $4);
+        }
+        | DECL_REGISTER ID ASSIGN QBIT_STR {
+					char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
+
+					for(int i = 1 ; i < strlen($4)-1 ; i++){
+						if ($4[i] == '0')
+							strcat(qbitInitializations, "new Qbit(1, 0)");
+						else if ($4[i] == '1')
+							strcat(qbitInitializations, "new Qbit(0, 1)");
+						if (i != strlen($4) - 2)
+							strcat(qbitInitializations, ",");
+					}
+					int len = 6 + strlen($2) + 27 + strlen(qbitInitializations);
+					$$ = malloc(len);
+					snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
+					printf("Acabo de escribir:\n");
+					printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
+
+					printf("Definitooon\n");		//FIXME remove this when this joke gets old
+
+					free(qbitInitializations);
         }
         ;
 
@@ -308,25 +306,27 @@ Unit :
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
+			int len;
       if (strcmp($1, "ID") != 0){
-          $$ = malloc(4 +
+					len = 4 +
           ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+
-          numOfDigits((int)$4.value));
+          numOfDigits((int)$4.value);
+          $$ = malloc(len);
 
           if (strcmp($1, "H") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", (int)$4.value);
+              snprintf($$,len, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "X") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "Y") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "Z") == 0){
-              sprintf($$, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", (int)$4.value);
               break;
           } else if (strcmp($1, "CNOT") == 0){
-              sprintf($$, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
+              snprintf($$, len, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
           }
       }
   }
@@ -335,26 +335,46 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 %%
 
-#define DEFAULT_OUTFILE "Main.java"
+#define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\npublic class "
+#define DEFAULT_OUTPUT_CLASS "Main"
+#define HEAD_END " {\n  public static void main(String[] args){\n"
+#define TAIL "  }\n}\n"
 
 int main(int argc, char **argv)
 {
     init_parser();
-	char* head = "import quantum.State;\n\
-	  import quantum.Qbit;\n\
-	  import quantum.gates.*;\n\
-	  public class Main {\n\
-		public static void main(String[] args){\n";
-	char* tail = "  }\n}\n";
-	char *inputFile;
-	char *outputFile;
+	char* head;
+	char* tail = TAIL;
+	char* inputFile;
+	char* outputFile;
+	char* compileCommand;
+	char* runCommand;
 	extern FILE *yyin, *yyout;
 
-	outputFile = argv[0];
+	int compileLen;
+	int runLen;
+
 	if(argc > 3)
 	{
 		printf("Too many arguments!");
 		exit(1);
+	}
+	else if(argc > 2)
+	{
+		outputFile = strdup(argv[2]);
+		strcat(outputFile, ".java");
+
+		head = malloc(strlen(HEAD_BEGINNING) + strlen(argv[2]) + strlen(HEAD_END));
+		strcat(head, HEAD_BEGINNING);
+		strcat(head, argv[2]);
+		strcat(head, HEAD_END);
+
+		compileLen = 7 + strlen(outputFile);
+		compileCommand = malloc(compileLen);
+		runLen = 6 + strlen(argv[2]);
+		runCommand = malloc(runLen);
+		snprintf(compileCommand, compileLen, "javac %s", outputFile);
+		snprintf(runCommand, runLen, "java %s", argv[2]);
 	}
 	if(argc > 1)
 	{
@@ -366,13 +386,23 @@ int main(int argc, char **argv)
 			exit(1);
 		}
 	}
-	if(argc > 2)
-	{
-		outputFile = argv[2];
-	}
 	else
 	{
-		outputFile = DEFAULT_OUTFILE;
+		outputFile = malloc(strlen(DEFAULT_OUTPUT_CLASS) + 6);
+		strcat(outputFile, DEFAULT_OUTPUT_CLASS);
+		strcat(outputFile, ".java");
+
+		head = malloc(strlen(HEAD_BEGINNING) + strlen(DEFAULT_OUTPUT_CLASS) + strlen(HEAD_END));
+		strcat(head, HEAD_BEGINNING);
+		strcat(head, DEFAULT_OUTPUT_CLASS);
+		strcat(head, HEAD_END);
+
+		compileLen = 7 + strlen(outputFile);
+		compileCommand = malloc(compileLen);
+		runLen = 6 + strlen(DEFAULT_OUTPUT_CLASS);
+		runCommand = malloc(runLen);
+		snprintf(compileCommand, compileLen, "javac %s", outputFile);
+		snprintf(runCommand, runLen, "java %s", DEFAULT_OUTPUT_CLASS);
 	}
 
 	yyout = fopen(outputFile,"w");
@@ -392,6 +422,12 @@ int main(int argc, char **argv)
 	//   unlink(outputFile);
 	//   exit(1);
 	// }
+	fclose(yyout);
+	system(compileCommand);
+	system(runCommand);
+	free(compileCommand);
+	free(runCommand);
+	free(head);
 	exit(0);
 }
 
@@ -406,7 +442,7 @@ int numOfDigits(int n){
 }
 
 void exit_program_if_variable_was_declared(char * id){
-    if(!is_declared(id)){
+    if(is_declared(id)){
         yyerror("Error\n");
         exit(1);
     }
