@@ -14,7 +14,6 @@ typedef struct sym
     char *name;
     char *str;
     var_type_t var_type;
-    int is_declared;
 } sym;
 
 /* Functions for struct sym management
