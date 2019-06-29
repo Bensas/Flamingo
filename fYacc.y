@@ -230,7 +230,7 @@ Declaration : DECL_INT ID {
             if($4.type == INTEGER_TYPE) {
                 int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + num_of_digits($4.value) +1;
                 $$ = malloc(len);
-                snprintf($$,len, "%s %s=%d", "int", $2->name, (int)$4.value);
+                snprintf($$,len, "%s %s=%s", "int", $2->name, $4.text);
             } else {
                 perror("Error: Float to Int\n");
                 exit(1);

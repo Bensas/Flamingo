@@ -26,7 +26,6 @@ void declare(char * key)
 {
     any_t * pointer=malloc(sizeof(*pointer));
     int result=hashmap_get(map,key,pointer);
-    ((sym *)*pointer)->is_declared=DECLARED;
     free(pointer);
 }
 
@@ -69,7 +68,6 @@ sym * symlook(char * sym_name)
         sym_p=(sym *)malloc(sizeof(*sym_p));
         sym_p->name=malloc(strlen(sym_name));
         strcpy(sym_p->name, sym_name);
-        sym_p->is_declared=DECLARED;
     }
 
     return sym_p;
