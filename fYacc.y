@@ -288,6 +288,7 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
+                int firstDeclaration = 0;
                 if(is_declared($1->name)) {
                     //Type verifications
                     if($1->var_type != $3.type) {
@@ -297,6 +298,7 @@ Definition : ID ASSIGN NumericExpression {
                 } else {
                     store_new_symbol($1->name, $1);
                     update_key_type($1->name, $3.type);
+                    firstDeclaration = 1;
                 }
                 int length = 0;
                 length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
@@ -309,17 +311,33 @@ Definition : ID ASSIGN NumericExpression {
                     length += num_of_digits($3.value);
                     $$ = malloc(length);
                     if($3.type == INTEGER_TYPE) {
-                        sprintf($$, "int %s = %d", $1->name, (int)$3.value);
+                        if(firstDeclaration) {
+                            sprintf($$, "int %s = %d", $1->name, (int)$3.value);
+                        } else {
+                            sprintf($$, "%s = %d", $1->name, (int)$3.value);
+                        }
                     } else {
-                        sprintf($$, "float %s = %f", $1->name, $3.value);
+                        if(firstDeclaration) {
+                            sprintf($$, "float %s = %f", $1->name, $3.value);
+                        } else {
+                            sprintf($$, "%s = %f", $1->name, $3.value);
+                        }
                     }
                 } else {
                     length += strlen($3.text);
                     $$ = malloc(length);
                     if($3.type == INTEGER_TYPE) {
-                        sprintf($$, "int %s = %s", $1->name, $3.text);
+                        if(firstDeclaration) {
+                            sprintf($$, "int %s = %s", $1->name, $3.text);
+                        } else {
+                            sprintf($$, "%s = %s", $1->name, $3.text);         
+                        }
                     } else {
-                        sprintf($$, "float %s = %s", $1->name, $3.text);
+                        if(firstDeclaration) {
+                            sprintf($$, "float %s = %s", $1->name, $3.text);
+                        } else {
+                            sprintf($$, "%s = %s", $1->name, $3.text);
+                        }
                     }
                 }
                 printf("Value of non typed definition: %s\n", $$);
@@ -484,7 +502,7 @@ Unit :
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(20); sprintf($$.text ,"%f", $1.value);}
   | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
                                                             $$.text = malloc(strlen($2.text) + 2);
-                                                            sprintf($$.text, "(%s)", $$.text);
+                                                            sprintf($$.text, "(%s)", $2.text);
                                                             if($2.resolvable) {
                                                              $$.value = $2.value;
                                                              $$.resolvable = 1;
