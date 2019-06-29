@@ -29,7 +29,6 @@ void declare(char * key)
     free(pointer);
 }
 
-// Stores pair key-value. Returns undeclared if there was any problem
 void store_new_symbol(char * key, sym * value)
 {
     hashmap_put(map, key, (any_t)value);
@@ -57,11 +56,11 @@ void update_key_type(char * key, var_type_t type)
 
 sym * symlook(char * sym_name)
 {
-    any_t * pointer=malloc(sizeof(*pointer)); // void **  en *pointer esta almacenado el valor del (void *)
+    any_t * pointer=malloc(sizeof(*pointer)); 
     sym * sym_p=NULL;
     if(is_declared(sym_name)){
         hashmap_get(map, sym_name, pointer);
-        sym_p=(sym *)(*pointer); // *(sym **) returns a pointer to struct sym
+        sym_p=(sym *)(*pointer); // returns a pointer to struct sym
     }
     else{
         sym_p=(sym *)malloc(sizeof(*sym_p));
