@@ -30,7 +30,11 @@ int yywrap()
       float value;
       enum type {INTEGER_TYPE, FLOAT_TYPE} type;
   } number;
-  int boolean;
+  struct boolean{
+		int value;
+		int resolvable;
+		char * text;
+	} boolean;
   char * string;
   char * gate;
   struct sym * id;
@@ -80,7 +84,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Statement Declaration PrintStatement
+%type <string> GateApply Statement Declaration PrintStatement	WhileStatement	Function
 
 %%
 
@@ -88,12 +92,22 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Statement {
+Program : Function EXIT END {
          fputs($1, yyout);
+				 exit(0);
         }
-        | Program Statement {
-         fputs($2, yyout);
-        }
+    ;
+
+Function : Statement {
+		$$ = $1;
+		printf("Function->Statement: alive with 1 statement with len %d\n",strlen($$));
+		}
+	| Function Statement {
+		printf("Function->Function Statement: alive with more than 1 statement with len %s\n",strlen($$));
+		int len = strlen($1) + strlen($2) +2;
+	 	$$ = malloc(len);
+	 	snprintf($$,len,"%s\n%s",$1,$2);
+		}
     ;
 
 Statement : Declaration END {
@@ -102,7 +116,11 @@ Statement : Declaration END {
         snprintf($$,len, "%s;", $1);
     }
     | IfStatement {;}
-    | WhileStatement {;}
+    | WhileStatement {
+			int len = strlen($1) + 1;
+    	$$ = malloc(len);
+        snprintf($$,len, "%s;", $1);
+		}
     | PrintStatement END {
 			int len = strlen($1) + 1;
     	$$ = malloc(len);
@@ -113,7 +131,6 @@ Statement : Declaration END {
 			$$ = malloc(len);
     	snprintf($$,len, "%s;", $1);
       }
-    | EXIT END {exit(0);}
     ;
 
 IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
@@ -121,7 +138,14 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
             | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE IfStatement {;}
     ;
 
-WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
+WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
+
+			int len = 7 + strlen($3->text) + 4 + strlen($6) + 3 +1;
+			$$ = malloc(len);
+
+			snprintf($$,len,"while( %s ){\n%s\n}",$3->text,$6);
+			$$[len-1] = '\0';
+			}
     ;
 
 PrintStatement : PRINT STRING {
@@ -142,7 +166,7 @@ PrintStatement : PRINT STRING {
 	;
 
 BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
-	| BoolExpOr {$$ = $1;}
+	| BoolExpOr {$$ = $1;printf("boolExp is %d\n",$$);}
 	;
 
 BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
@@ -150,9 +174,9 @@ BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
 	;
 
 BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$ = $2;}
-    | NOT BoolVal {$$ = 1 - $2;}
-    | TRUE {$$ = 1;}
-    | FALSE {$$ = 0;}
+    | NOT BoolVal {$$->value = 1 - $2->value; $$->resolvable = $2->resolvable; ($2->value==0)?($$->text = "1"):($$->text = "0")) }
+    | TRUE {$$->resolvable = 1; $$->value = 1; $$->text = "1";}
+    | FALSE {$$->resolvable = 1;$$->value = 0; $$->text = "0"; }
     | RelationalExp {$$ = $1;}
     ;
 
@@ -219,6 +243,7 @@ Declaration : DECL_INT ID {
             printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
         }
         | DECL_STRING ID ASSIGN STRING {
+						exit_program_if_variable_was_declared($2->name);
 						int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
 						$$ = malloc(len);
 						$$[len] = '\0';
@@ -226,6 +251,7 @@ Declaration : DECL_INT ID {
             printf("Defined a string variable %s, value of %s\n", $$, $4);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
+					exit_program_if_variable_was_declared($2->name);
 					char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
 					for(int i = 1 ; i < strlen($4)-1 ; i++){
@@ -236,11 +262,11 @@ Declaration : DECL_INT ID {
 						if (i != strlen($4) - 2)
 							strcat(qbitInitializations, ",");
 					}
-					int len = 6 + strlen($2) + 27 + strlen(qbitInitializations);
+					int len = 6 + strlen($2->name) + 27 + strlen(qbitInitializations);
 					$$ = malloc(len);
 					snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
-					printf("Acabo de escribir:\n");
-					printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
+					//printf("Acabo de escribir:\n");
+					//printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
 
 					printf("Definitooon\n");		//FIXME remove this when this joke gets old
 
