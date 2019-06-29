@@ -324,26 +324,41 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 %%
 
-#define DEFAULT_OUTFILE "Main.java"
+#define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\npublic class "
+#define DEFAULT_OUTPUT_CLASS "Main"
+#define HEAD_END " {\n  public static void main(String[] args){\n"
+#define TAIL "  }\n}\n"
 
 int main(int argc, char **argv)
 {   
     init_parser();
-	char* head = "import quantum.State;\n\
-	  import quantum.Qbit;\n\
-	  import quantum.gates.*;\n\
-	  public class Main {\n\
-		public static void main(String[] args){\n";
-	char* tail = "  }\n}\n";
-	char *inputFile;
-	char *outputFile;
+	char* head;
+	char* tail = TAIL;
+	char* inputFile;
+	char* outputFile;
+	char* compileCommand;
+	char* runCommand;
 	extern FILE *yyin, *yyout;
 
-	outputFile = argv[0];
 	if(argc > 3)
 	{
 		printf("Too many arguments!");
 		exit(1);
+	}
+	else if(argc > 2)
+	{
+		outputFile = strdup(argv[2]);
+		strcat(outputFile, ".java");
+
+		head = malloc(strlen(HEAD_BEGINNING) + strlen(argv[2]) + strlen(HEAD_END));
+		strcat(head, HEAD_BEGINNING);
+		strcat(head, argv[2]);
+		strcat(head, HEAD_END);
+
+		compileCommand = malloc(7 + strlen(outputFile));
+		runCommand = malloc(6 + strlen(argv[2]));
+		sprintf(compileCommand, "javac %s", outputFile);
+		sprintf(runCommand, "java %s", argv[2]);
 	}
 	if(argc > 1)
 	{
@@ -354,14 +369,22 @@ int main(int argc, char **argv)
 			printf("Failed to open %s!", inputFile); 
 			exit(1);
 		}
-	}
-	if(argc > 2)
-	{
-		outputFile = argv[2];
-	}
+	} 
 	else
 	{
-		outputFile = DEFAULT_OUTFILE;
+		outputFile = malloc(strlen(DEFAULT_OUTPUT_CLASS) + 6);
+		strcat(outputFile, DEFAULT_OUTPUT_CLASS);
+		strcat(outputFile, ".java");
+
+		head = malloc(strlen(HEAD_BEGINNING) + strlen(DEFAULT_OUTPUT_CLASS) + strlen(HEAD_END));
+		strcat(head, HEAD_BEGINNING);
+		strcat(head, DEFAULT_OUTPUT_CLASS);
+		strcat(head, HEAD_END);
+
+		compileCommand = malloc(7 + strlen(outputFile));
+		runCommand = malloc(6 + strlen(DEFAULT_OUTPUT_CLASS));
+		sprintf(compileCommand, "javac %s", outputFile);
+		sprintf(runCommand, "java %s", DEFAULT_OUTPUT_CLASS);
 	}
 
 	yyout = fopen(outputFile,"w");
@@ -381,6 +404,12 @@ int main(int argc, char **argv)
 	//   unlink(outputFile);
 	//   exit(1);
 	// }
+	fclose(yyout);
+	system(compileCommand);
+	system(runCommand);
+	free(compileCommand);
+	free(runCommand);
+	free(head);
 	exit(0);
 }
 
