@@ -28,7 +28,7 @@ int yywrap()
 %union {
   struct number {
       float value;
-      enum type {INTEGER_TYPE, FLOAT_TYPE} type;
+      var_type_t type;
       int resolvable;
       char * text;
   } number;
@@ -333,7 +333,7 @@ Term :
                         } else {
                             $$.resolvable = 0;
                         }
-                        }
+                    }
   | Unit {$$.type = $1.type;
           if($1.resolvable) {
             $$.value = $1.value;
@@ -345,7 +345,10 @@ Term :
   ;
 
 Unit :
-  ID  {$$.resolvable = 0;}             /*FIXME: decidir esto despues */
+  ID  {$$.resolvable = 0;
+      $$.text = strdup($1->name);
+      sym * aux = symlook($1->name);
+      $$.type = aux->var_type;}             /*FIXME: decidir esto despues */
   | MINUS Unit {
       $$.type = $2.type;
       if($2.resolvable) {
@@ -353,9 +356,12 @@ Unit :
         $$.resolvable = 1;
       } else {
           $$.resolvable = 0;
+          $$.text = malloc(1 + strlen($2.text));
+          sprintf($$.text, "-%s", $2.text);
+          printf("La cosa queda: %s\n", $$.text);
       } 
     }
-  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
+  | INTEGER_NUMBER  {printf("Integer type: %d\n", $$.type);$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value;}
   | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
                                                             if($2.resolvable) {
@@ -363,6 +369,8 @@ Unit :
                                                              $$.resolvable = 1;
                                                             } else {
                                                                 $$.resolvable = 0;
+                                                                $$.text = malloc(strlen($2.text));
+                                                                sprintf($$.text, "(%s)", $$.text);
                                                             }
                                                           }
   ;
