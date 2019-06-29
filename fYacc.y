@@ -197,7 +197,7 @@ Declaration : DECL_INT ID {
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
             if($4.type == INTEGER_TYPE) {
-                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value) +1;
+                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + num_of_digits($4.value) +1;
                 $$ = malloc(len);
                 snprintf($$,len, "%s %s=%d", "int", $2->name, (int)$4.value);
             } else {
@@ -310,7 +310,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
       if (strcmp($1, "ID") != 0){
 					len = 4 +
           ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+
-          numOfDigits((int)$4.value);
+          num_of_digits((int)$4.value);
           $$ = malloc(len);
 
           if (strcmp($1, "H") == 0){
@@ -431,7 +431,7 @@ int main(int argc, char **argv)
 	exit(0);
 }
 
-int numOfDigits(int n){
+int num_of_digits(int n){
 	int result = 1;
 	int aux = n;
 	while (aux/10 != 0){

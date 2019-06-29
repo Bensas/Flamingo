@@ -25,7 +25,7 @@ typedef struct sym
 void init_parser();
 void update_sym_table(char * key, sym * value);
 sym * symlook(char * sym_name);
-int numOfDigits(int n);
+int num_of_digits(int n);
 void exit_program_if_variable_was_declared(char * id);
 //int yywrap();
 
