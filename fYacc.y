@@ -248,7 +248,10 @@ Declaration : DECL_INT ID {
             }
             store_new_symbol($2->name, $2);
             update_key_type($2->name, FLOAT_TYPE);
-            printf("Defined a float variable: %s, value of %f, type of %d\n", $$, $4.value, symlook($2->name)->var_type);
+            printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
+            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
+            sprintf($$, "float %s = %s", $2->name, $4.text);
+            printf("Decl float queda: %s\n", $$);
         }
         | DECL_STRING ID ASSIGN STRING {
             int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
@@ -352,6 +355,7 @@ NumericExpression :
             $$.type = $1.type;
             if($1.resolvable) {
                 $$.value = $1.value;
+                printf("Term value is: %f\n", $1.value);
                 $$.resolvable = 1;
             } else {
                 $$.resolvable = 0;
@@ -368,10 +372,20 @@ Term :
                             $$.type = INTEGER_TYPE;
                         }
                         if($1.resolvable && $3.resolvable) {
-                            $$.value = $1.value * $3.value;
+                            if($1.type == FLOAT_TYPE || $2.type == FLOAT_TYPE) {
+                                $$.value = $1.value * $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value * (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", $$.value);
+                            }
                             $$.resolvable = 1;
                         } else {
                             $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + strlen($3.text));
+                            sprintf($$.text, "%s * %s", $1.text, $3.text);
                         }
                         }
   | Term DIVIDE  Unit {
