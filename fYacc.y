@@ -97,21 +97,21 @@ Program : Statement {
     ;
 
 Statement : Declaration END {
-		int len = strlen($1) + 1;
+		int len = strlen($1) + 2;
 		$$ = malloc(len);
         snprintf($$,len, "%s;", $1);
     }
     | IfStatement {;}
     | WhileStatement {;}
     | PrintStatement END {
-			int len = strlen($1) + 1;
+			int len = strlen($1) + 2;
     	$$ = malloc(len);
         snprintf($$,len, "%s;", $1);
     	}
     | GateApply END {
-			int len = strlen($1) + 1;
+			int len = strlen($1) + 2;
 			$$ = malloc(len);
-    	snprintf($$,len, "%s;", $1);
+    	snprintf($$,len, "%s;", $2);
       }
     | EXIT END {exit(0);}
     ;
@@ -131,13 +131,13 @@ PrintStatement : PRINT STRING {
 	}
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
-		// if ($2->type == TYPE_REG){
-		// 	$$ = malloc(strlen($2->name) + 18);
-		// 	sprintf($$, "%s.printAmplitudes()", $2->name);
-		// } else {
-		// 	$$ = malloc(strlen($2->name) + 20);
-		// 	sprintf($$, "System.out.println(%s)", $2->name);
-		// }
+		if ($2->var_type == TYPE_REG){
+			$$ = malloc(strlen($2->name) + 19);
+			sprintf($$, "%s.printAmplitudes()", $2->name);
+		} else {
+			$$ = malloc(strlen($2->name) + 21);
+			sprintf($$, "System.out.println(%s)", $2->name);
+		}
 		;}
 	;
 
@@ -167,24 +167,27 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
-					int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
+			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "int %s", $2->name);
+        	$2->var_type = TYPE_INT;
             printf("Fue una declaracion\n");
         }
         | DECL_FLOAT ID {
-					int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
+			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "float %s", $2->name);
+        	$2->var_type = TYPE_FLOAT;
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
-						int len = STRING_LEN + SPACE_LEN + strlen($2->name);
+			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "String %s", $2->name);
+        	$2->var_type = TYPE_STRING;
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
@@ -192,6 +195,7 @@ Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
         	$$ = malloc(len);
         	snprintf($$,len, "State %s", $2->name);
+        	$2->var_type = TYPE_REG;
             printf("Fue una declaracion\n");
         }
         | DECL_INT ID ASSIGN NumericExpression {
@@ -200,6 +204,7 @@ Declaration : DECL_INT ID {
                 int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + numOfDigits($4.value) +1;
                 $$ = malloc(len);
                 snprintf($$,len, "%s %s=%d", "int", $2->name, (int)$4.value);
+                $2->var_type = TYPE_INT;
             } else {
                 perror("Error: Float to Int\n");
                 exit(1);
@@ -212,6 +217,7 @@ Declaration : DECL_INT ID {
                 int len = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
                 $$ = malloc(len);
                 snprintf($$,len, "%s %s=%f", "float", $2->name, $4.value);
+                $2->var_type = TYPE_FLOAT;
             } else {
                 perror("Error: Int to Float");
                 exit(1);
@@ -223,6 +229,7 @@ Declaration : DECL_INT ID {
 						$$ = malloc(len);
 						$$[len] = '\0';
 						snprintf($$,len, "%s%c%s", $2->name, '=', $4);
+						$2->var_type = TYPE_STRING;
             printf("Defined a string variable %s, value of %s\n", $$, $4);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
@@ -239,6 +246,7 @@ Declaration : DECL_INT ID {
 					int len = 6 + strlen($2) + 27 + strlen(qbitInitializations);
 					$$ = malloc(len);
 					snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
+					$2->var_type = TYPE_REG;
 					printf("Acabo de escribir:\n");
 					printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
 
@@ -443,7 +451,7 @@ int numOfDigits(int n){
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        yyerror("Error\n");
+        yyerror("Error: variable already declared!\n");
         exit(1);
     }
 }
