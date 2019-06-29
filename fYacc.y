@@ -222,6 +222,11 @@ Declaration : DECL_INT ID {
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, INTEGER_TYPE);
+
             if($4.type == INTEGER_TYPE) {
                 int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + num_of_digits($4.value) +1;
                 $$ = malloc(len);
@@ -230,8 +235,6 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, INTEGER_TYPE);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -329,6 +332,7 @@ NumericExpression :
                             $$.resolvable = 1;
                         } else {
                             $$.resolvable = 0;
+                            
                         }
                         }
   | NumericExpression MINUS Term  {
@@ -379,9 +383,19 @@ Term :
                         if($1.resolvable && $3.resolvable) {
                             $$.value = $1.value / $3.value;
                             $$.resolvable = 1;
+                            if($$.type == INTEGER_TYPE) {
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            } else {
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            }
                         } else {
                             $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + strlen($3.text) + 1 + 2*SPACE_LEN);
+                            sprintf($$.text, "%s / %s", $1.text, $3.text);
                         }
+                        printf("Divide expression was: %s\n", $$.text);
                       }
   | Term MODULO Unit {
                         if($1.type != INTEGER_TYPE || $3.type != INTEGER_TYPE) {
@@ -392,8 +406,12 @@ Term :
                         if($1.resolvable && $3.resolvable) {
                             $$.value = (int)$1.value % (int)$3.value;
                             $$.resolvable = 1;
+                            $$.text = malloc(num_of_digits((int)$$.value));
+                            sprintf($$.text, "%d", (int)$$.value);
                         } else {
                             $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + strlen($3.text) + 1 + 2*SPACE_LEN);
+                            sprintf($$.text, "%s %c %s", $1.text, '%', $3.text);
                         }
                     }
   | Unit {$$.type = $1.type;
@@ -403,6 +421,7 @@ Term :
           } else {
               $$.resolvable = 0;
           }
+          $$.text = $1.text;
           printf("UNIT type of: %d\n", $$.type);
         }
   ;
@@ -412,30 +431,29 @@ Unit :
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
       $$.type = aux->var_type;
-      printf("Unit I: %s\n", $1->name);
-      printf("Unit type: %d\n", aux->var_type);}             /*FIXME: decidir esto despues */
+      $$.text = strdup($1->name);}             /*FIXME: decidir esto despues */
   | MINUS Unit {
       $$.type = $2.type;
-      if($2.resolvable) {
+    $$.text = malloc(strlen($2.text) + 1);
+    sprintf($$.text, "-%s", $2.text);
+    if($2.resolvable) {
         $$.value = -$2.value;
-        $$.resolvable = 1;
-      } else {
-          $$.resolvable = 0;
-          $$.text = malloc(1 + strlen($2.text));
-          sprintf($$.text, "-%s", $2.text);
-          printf("La cosa queda: %s\n", $$.text);
-      } 
-    }
-  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
-  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value; printf("Found type: %d\n", $$.type);}
+        $$.resolvable = 1;    
+    } else {
+        $$.resolvable = 0;
+        printf("La cosa queda: %s\n", $$.text);
+    } 
+  }
+  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(num_of_digits((int)$1.value)); sprintf($$.text ,"%d", (int)$1.value);}
+  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(20); sprintf($$.text ,"%f", $1.value);}
   | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
+                                                            $$.text = malloc(strlen($2.text) + 2);
+                                                            sprintf($$.text, "(%s)", $$.text);
                                                             if($2.resolvable) {
                                                              $$.value = $2.value;
                                                              $$.resolvable = 1;
                                                             } else {
                                                                 $$.resolvable = 0;
-                                                                $$.text = malloc(strlen($2.text));
-                                                                sprintf($$.text, "(%s)", $$.text);
                                                             }
                                                           }
   ;
@@ -584,7 +602,7 @@ int num_of_digits(int n){
 		aux /= 10;
 		result++;
 	}
-	return result;
+	return result + (n<0?1:0);
 }
 
 void exit_program_if_variable_was_declared(char * id){
