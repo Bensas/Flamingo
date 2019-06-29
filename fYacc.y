@@ -86,7 +86,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit 
-%type <string> GateApply Statement Declaration PrintStatement
+%type <string> GateApply Statement Declaration Definition PrintStatement
 
 %%
 
@@ -138,11 +138,11 @@ PrintStatement : PRINT STRING {
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
 		// if ($2->type == TYPE_REG){
-		// 	$$ = malloc(strlen($2->name) + 18);
-		// 	sprintf($$, "%s.printAmplitudes()", $2->name);
+		// 	$$ = malloc(strlen($2) + 18);
+		// 	sprintf($$, "%s.printAmplitudes()", $2);
 		// } else {
-		// 	$$ = malloc(strlen($2->name) + 20);
-		// 	sprintf($$, "System.out.println(%s)", $2->name);
+		// 	$$ = malloc(strlen($2) + 20);
+		// 	sprintf($$, "System.out.println(%s)", $2);
 		// }
 		;}
 	;
@@ -175,6 +175,11 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$.value = ($
 Declaration : DECL_INT ID {
 			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+            
+            //Variable was not declared;
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, INTEGER_TYPE);
+
             $$ = malloc(len);
         	snprintf($$,len, "int %s", $2->name);
             printf("Fue una declaracion\n");
@@ -182,6 +187,11 @@ Declaration : DECL_INT ID {
         | DECL_FLOAT ID {
 			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, FLOAT_TYPE);
+
             $$ = malloc(len);
         	snprintf($$,len, "float %s", $2->name);
             printf("Fue una declaracion\n");
@@ -189,6 +199,11 @@ Declaration : DECL_INT ID {
         | DECL_STRING ID {
 			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, TYPE_STRING);
+
             $$ = malloc(len);
         	snprintf($$,len, "String %s", $2->name);
             printf("Fue una declaracion\n");
@@ -197,6 +212,11 @@ Declaration : DECL_INT ID {
 			int len = STATE_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
         	$$ = malloc(len);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, TYPE_REG);
+
         	snprintf($$,len, "State %s", $2->name);
             printf("Fue una declaracion\n");
         }
@@ -210,15 +230,8 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-            sym * aux = symlook($2->name);
-            aux->var_type = INTEGER_TYPE;
-            printf("LLEGO\n");
-            update_sym_table(aux->name, aux);
-            symlook($2->name);
-            // printf("Name of the variable in symTab: %s\n", aux->name);
-            // printf("Variable is declared: %d\n", symlook($2->name)->is_declared);
-            // symlook($2->name)->var_type = INTEGER_TYPE;
-            // printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, INTEGER_TYPE);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -230,7 +243,9 @@ Declaration : DECL_INT ID {
                 perror("Error: Int to Float");
                 exit(1);
             }
-            printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, FLOAT_TYPE);
+            printf("Defined a float variable: %s, value of %f, type of %d\n", $$, $4.value, symlook($2->name)->var_type);
         }
         | DECL_STRING ID ASSIGN STRING {
             int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
@@ -260,7 +275,47 @@ Declaration : DECL_INT ID {
 
             free(qbitInitializations);
         }
+        | Definition {$$ = $1; printf("Value of Decl: %s\n", $$);}
         ;
+
+Definition : ID ASSIGN NumericExpression {
+                if(is_declared($1->name)) {
+                    //Type verifications
+                    if($1->var_type != $3.type) {
+                        perror("Error while defining");
+                        exit(1);
+                    }
+                } else {
+                    store_new_symbol($1->name, $1);
+                    update_key_type($1->name, $3.type);
+                }
+                int length = 0;
+                length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
+                if($3.type == INTEGER_TYPE) {
+                    length += INTEGER_LENGTH + 1;
+                } else {
+                    length += FLOAT_LENGTH + 1;
+                }
+                if($3.resolvable) {
+                    length += num_of_digits($3.value);
+                    $$ = malloc(length);
+                    if($3.type == INTEGER_TYPE) {
+                        sprintf($$, "int %s = %d", $1->name, (int)$3.value);
+                    } else {
+                        sprintf($$, "float %s = %f", $1->name, $3.value);
+                    }
+                } else {
+                    length += strlen($3.text);
+                    $$ = malloc(length);
+                    if($3.type == INTEGER_TYPE) {
+                        sprintf($$, "int %s = %s", $1->name, $3.text);
+                    } else {
+                        sprintf($$, "float %s = %s", $1->name, $3.text);
+                    }
+                }
+                printf("Value of non typed definition: %s\n", $$);
+            }
+        | ID ASSIGN QBIT_STR {;}
 
 NumericExpression :
   NumericExpression PLUS Term  {
@@ -297,6 +352,7 @@ NumericExpression :
             } else {
                 $$.resolvable = 0;
             }
+            printf("TERM type of: %d\n", $$.type);
         }
   ;
 
@@ -347,6 +403,7 @@ Term :
           } else {
               $$.resolvable = 0;
           }
+          printf("UNIT type of: %d\n", $$.type);
         }
   ;
 
@@ -355,7 +412,7 @@ Unit :
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
       $$.type = aux->var_type;
-      printf("Unit ID name: %s\n", $1->name);
+      printf("Unit I: %s\n", $1->name);
       printf("Unit type: %d\n", aux->var_type);}             /*FIXME: decidir esto despues */
   | MINUS Unit {
       $$.type = $2.type;
@@ -370,7 +427,7 @@ Unit :
       } 
     }
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
-  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value;}
+  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value; printf("Found type: %d\n", $$.type);}
   | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
                                                             if($2.resolvable) {
                                                              $$.value = $2.value;
@@ -535,8 +592,4 @@ void exit_program_if_variable_was_declared(char * id){
         yyerror("Error\n");
         exit(1);
     }
-}
-
-sym * getSymTab(char * name) {
-    return symlook(name);
 }
