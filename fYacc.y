@@ -86,7 +86,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit 
-%type <string> GateApply Definition Statement Declaration PrintStatement
+%type <string> GateApply Statement Declaration PrintStatement
 
 %%
 
@@ -140,7 +140,7 @@ PrintStatement : PRINT STRING {
 		// if ($2->type == TYPE_REG){
 		// 	$$ = malloc(strlen($2->name) + 18);
 		// 	sprintf($$, "%s.printAmplitudes()", $2->name);
-		/ q/ } else {
+		// } else {
 		// 	$$ = malloc(strlen($2->name) + 20);
 		// 	sprintf($$, "System.out.println(%s)", $2->name);
 		// }
@@ -173,28 +173,28 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$.value = ($
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
-					int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
+			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "int %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_FLOAT ID {
-					int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
+			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "float %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_STRING ID {
-						int len = STRING_LEN + SPACE_LEN + strlen($2->name);
+			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
             $$ = malloc(len);
         	snprintf($$,len, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-					int len = STATE_LEN + SPACE_LEN + strlen($2->name);
+			int len = STATE_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
         	$$ = malloc(len);
         	snprintf($$,len, "State %s", $2->name);
@@ -210,7 +210,15 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-            printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+            sym * aux = symlook($2->name);
+            aux->var_type = INTEGER_TYPE;
+            printf("LLEGO\n");
+            update_sym_table(aux->name, aux);
+            symlook($2->name);
+            // printf("Name of the variable in symTab: %s\n", aux->name);
+            // printf("Variable is declared: %d\n", symlook($2->name)->is_declared);
+            // symlook($2->name)->var_type = INTEGER_TYPE;
+            // printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -225,32 +233,32 @@ Declaration : DECL_INT ID {
             printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
         }
         | DECL_STRING ID ASSIGN STRING {
-						int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
-						$$ = malloc(len);
-						$$[len] = '\0';
-						snprintf($$,len, "%s%c%s", $2->name, '=', $4);
+            int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
+            $$ = malloc(len);
+            $$[len] = '\0';
+            snprintf($$,len, "%s%c%s", $2->name, '=', $4);
             printf("Defined a string variable %s, value of %s\n", $$, $4);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
-					char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
+            char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
-					for(int i = 1 ; i < strlen($4)-1 ; i++){
-						if ($4[i] == '0')
-							strcat(qbitInitializations, "new Qbit(1, 0)");
-						else if ($4[i] == '1')
-							strcat(qbitInitializations, "new Qbit(0, 1)");
-						if (i != strlen($4) - 2)
-							strcat(qbitInitializations, ",");
-					}
-					int len = 6 + strlen($2) + 27 + strlen(qbitInitializations);
-					$$ = malloc(len);
-					snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
-					printf("Acabo de escribir:\n");
-					printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
+            for(int i = 1 ; i < strlen($4)-1 ; i++){
+                if ($4[i] == '0')
+                    strcat(qbitInitializations, "new Qbit(1, 0)");
+                else if ($4[i] == '1')
+                    strcat(qbitInitializations, "new Qbit(0, 1)");
+                if (i != strlen($4) - 2)
+                    strcat(qbitInitializations, ",");
+            }
+            int len = 6 + strlen($2->name) + 27 + strlen(qbitInitializations);
+            $$ = malloc(len);
+            snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
+            printf("Acabo de escribir:\n");
+            printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
 
-					printf("Definitooon\n");		//FIXME remove this when this joke gets old
+            printf("Definitooon\n");		//FIXME remove this when this joke gets old
 
-					free(qbitInitializations);
+            free(qbitInitializations);
         }
         ;
 
@@ -346,7 +354,9 @@ Unit :
   ID  {$$.resolvable = 0;
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
-      $$.type = aux->var_type;}             /*FIXME: decidir esto despues */
+      $$.type = aux->var_type;
+      printf("Unit ID name: %s\n", $1->name);
+      printf("Unit type: %d\n", aux->var_type);}             /*FIXME: decidir esto despues */
   | MINUS Unit {
       $$.type = $2.type;
       if($2.resolvable) {
@@ -359,7 +369,7 @@ Unit :
           printf("La cosa queda: %s\n", $$.text);
       } 
     }
-  | INTEGER_NUMBER  {printf("Integer type: %d\n", $$.type);$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
+  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value;}
   | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value;}
   | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
                                                             if($2.resolvable) {
@@ -410,8 +420,17 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_END " {\n  public static void main(String[] args){\n"
 #define TAIL "  }\n}\n"
 
+void printVarTypes() {
+    printf("TYPE_UNDEF: %d\n", TYPE_UNDEF);
+    printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
+    printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
+    printf("TYPE_STRING: %d\n", TYPE_STRING);
+    printf("TYPE_REG: %d\n", TYPE_REG);
+}
+
 int main(int argc, char **argv)
 {
+    printVarTypes();
     init_parser();
 	char* head;
 	char* tail = TAIL;
@@ -516,4 +535,8 @@ void exit_program_if_variable_was_declared(char * id){
         yyerror("Error\n");
         exit(1);
     }
+}
+
+sym * getSymTab(char * name) {
+    return symlook(name);
 }
