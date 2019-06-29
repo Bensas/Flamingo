@@ -1,13 +1,11 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
-//#define NSYMS 20 /* maximum number of symbols */
-
 #define UNDECLARED 0
 #define DECLARED 1
 
 typedef void * any_t;
-typedef enum { TYPE_UNDEF, TYPE_NUMBER, TYPE_STRING, TYPE_REG } var_type_t;
+typedef enum { TYPE_UNDEF, TYPE_INT, TYPE_FLOAT, TYPE_STRING, TYPE_REG } var_type_t;
 
 //typedef enum { OP_GREATER, OP_GREATER_EQ, OP_LESSER, OP_LESSER_EQ, OP_EQUALS, OP_NOT_EQ } op_t;
 
@@ -19,14 +17,22 @@ typedef struct sym
     int is_declared;
 } sym;
 
-//struct symtab *symlook();
-
-//void warning(char *s, char *t);
+/* Functions for struct sym management
+*/
+void declare(char * key);
 void init_parser();
-void update_sym_table(char * key, sym * value);
+int is_declared(char * key);
 sym * symlook(char * sym_name);
+void store_new_symbol(char * key, sym * value);
+void update_key_type(char * key, var_type_t type);
+void update_key_value(char * key, char * value);
+
+
+/* Auxiliar functions
+*/
 int num_of_digits(int n);
 void exit_program_if_variable_was_declared(char * id);
+
 //int yywrap();
 
 #endif
