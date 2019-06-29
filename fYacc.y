@@ -181,8 +181,8 @@ Declaration : DECL_INT ID {
             update_key_type($2->name, INTEGER_TYPE);
 
             $$ = malloc(len);
-        	snprintf($$,len, "int %s", $2->name);
-            printf("Fue una declaracion\n");
+        	snprintf($$,len + 1, "int %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_FLOAT ID {
 			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
@@ -193,8 +193,8 @@ Declaration : DECL_INT ID {
             update_key_type($2->name, FLOAT_TYPE);
 
             $$ = malloc(len);
-        	snprintf($$,len, "float %s", $2->name);
-            printf("Fue una declaracion\n");
+        	snprintf($$,len + 1, "float %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_STRING ID {
 			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
@@ -205,7 +205,7 @@ Declaration : DECL_INT ID {
             update_key_type($2->name, TYPE_STRING);
 
             $$ = malloc(len);
-        	snprintf($$,len, "String %s", $2->name);
+        	snprintf($$,len + 1, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
@@ -217,8 +217,8 @@ Declaration : DECL_INT ID {
             store_new_symbol($2->name, $2);
             update_key_type($2->name, TYPE_REG);
 
-        	snprintf($$,len, "State %s", $2->name);
-            printf("Fue una declaracion\n");
+        	snprintf($$,len + 1, "State %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -235,6 +235,8 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
+
+            printf("Decl int queda: %s\n", $$);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -257,8 +259,9 @@ Declaration : DECL_INT ID {
             int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
             $$ = malloc(len);
             $$[len] = '\0';
-            snprintf($$,len, "%s%c%s", $2->name, '=', $4);
+            snprintf($$,len+1, "String %s%c%s", $2->name, '=', $4);
             printf("Defined a string variable %s, value of %s\n", $$, $4);
+            printf("Definicion de string queda: %s\n", $$);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
             char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
@@ -331,11 +334,20 @@ NumericExpression :
                             $$.type = INTEGER_TYPE;
                         }
                         if($1.resolvable && $3.resolvable) {
-                            $$.value = $1.value + $3.value;
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                                $$.value = $1.value + $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value + (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            }
                             $$.resolvable = 1;
                         } else {
                             $$.resolvable = 0;
-                            
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 + strlen($3.text));
+                            sprintf($$.text, "%s + %s", $1.text, $3.text);
                         }
                         }
   | NumericExpression MINUS Term  {
@@ -345,10 +357,20 @@ NumericExpression :
                             $$.type = INTEGER_TYPE;
                         }
                         if($1.resolvable && $3.resolvable) {
-                            $$.value = $1.value - $3.value;
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                                $$.value = $1.value - $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value - (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            }
                             $$.resolvable = 1;
                         } else {
                             $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 + strlen($3.text));
+                            sprintf($$.text, "%s - %s", $1.text, $3.text);
                         }
                     }
   | Term  {
@@ -372,19 +394,19 @@ Term :
                             $$.type = INTEGER_TYPE;
                         }
                         if($1.resolvable && $3.resolvable) {
-                            if($1.type == FLOAT_TYPE || $2.type == FLOAT_TYPE) {
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
                                 $$.value = $1.value * $3.value;
                                 $$.text = malloc(20);
                                 sprintf($$.text, "%f", $$.value);
                             } else {
                                 $$.value = (int)$1.value * (int)$3.value;
                                 $$.text = malloc(num_of_digits((int)$$.value));
-                                sprintf($$.text, "%d", $$.value);
+                                sprintf($$.text, "%d", (int)$$.value);
                             }
                             $$.resolvable = 1;
                         } else {
                             $$.resolvable = 0;
-                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + strlen($3.text));
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 +strlen($3.text));
                             sprintf($$.text, "%s * %s", $1.text, $3.text);
                         }
                         }
