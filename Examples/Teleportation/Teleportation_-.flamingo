@@ -17,12 +17,12 @@ Int secondMeasure = M(reg 1);
 
 //Based on the values of the measurements ,
 //we apply corrections to get the desired result
-if (secondMeasure){
+if (secondMeasure == 1){
 	X(reg 2);
 }
 
-if (firstMeasure){
-	X(reg 2);
+if (firstMeasure == 1){
+	Z(reg 2);
 }
 
 FLAMINGO reg;

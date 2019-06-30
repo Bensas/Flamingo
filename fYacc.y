@@ -86,12 +86,17 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Function EXIT END{
+Program : Function {
             fputs($1, yyout);
-            exit(0);
+            YYACCEPT;
+        }
+        | Function EXIT END{
+        	fputs($1, yyout);
+        	YYACCEPT;
         }
 		| EXIT END	{
-            exit(0);
+			fputs($1, yyout);
+			YYACCEPT;
         }
     ;
 
@@ -634,6 +639,8 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_END " {\n  public static void main(String[] args){\n"
 #define TAIL 
 
+int lineNum;
+
 int main(int argc, char **argv)
 {
     init_parser();
@@ -699,9 +706,6 @@ int main(int argc, char **argv)
 		printf("Too many arguments!");
 		exit(1);
 	}
-
-	printf("%d\n", argc);
-
 	yyout = fopen(outputFile,"w");
 	if(yyout == NULL)
 	{
@@ -740,14 +744,20 @@ int num_of_digits(int n){
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        yyerror("Variable already declared\n");
+        int msgLength = 40 + num_of_digits(lineNum);
+    	char* errormsg = malloc(msgLength);
+    	snprintf(errormsg, msgLength, "Error at line %d: Variable already declared\n", lineNum-1);
+        yyerror(errormsg);
         exit(1);
     }
 }
 
 void exit_if_variable_was_not_declared(char * id){
     if(!is_declared(id)){
-        yyerror("Variable not declared\n");
+    	int msgLength = 40 + num_of_digits(lineNum);
+    	char* errormsg = malloc(msgLength);
+    	snprintf(errormsg, msgLength, "Error at line %d: Variable not declared\n", lineNum-1);
+        yyerror(errormsg);
         exit(1);
     }
 }

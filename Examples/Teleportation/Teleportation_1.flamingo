@@ -11,17 +11,17 @@ CNOT(reg 0);
 H(reg 0);
 
 //We apply measurements and store them in variables
-int firstMeasure = M(reg 0);
-int secondMeasure = M(reg 1);
+Int firstMeasure = M(reg 0);
+Int secondMeasure = M(reg 1);
 
 //Based on the values of the measurements ,
 //we apply corrections to get the desired result
-if (secondMeasure){
+if (secondMeasure == 1){
 	X(reg 2);
 }
 
-if (firstMeasure){
-	X(reg 2);
+if (firstMeasure == 1){
+	Z(reg 2);
 }
 
 FLAMINGO reg;

@@ -21,7 +21,7 @@ if (secondMeasure == 1){
 }
 
 if (firstMeasure == 1){
-	X(reg 2);
+	Z(reg 2);
 }
 
 FLAMINGO reg;

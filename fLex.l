@@ -3,6 +3,8 @@
 	#include <stdlib.h>
 	#include "parser.h"
 	#include "y.tab.h"
+
+	extern int lineNum;
 %}
 
 
@@ -14,10 +16,11 @@ float          [0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
 qbitString     \|[01]+>
-comment 	   \/\/.*\n
+comment 	   \/\/.*
+newline		   \n
 
 %%
-{comment}		{}
+{comment}		{lineNum++;}
 "!"				{ yylval.string = strdup(yytext); return SINGLE_TERM_OP; }
 "&&"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
 "||"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
@@ -57,6 +60,7 @@ comment 	   \/\/.*\n
 {variableName}  { yylval.id = symlook(yytext); return ID; }
 {string}		{ yylval.string = strdup(yytext); return STRING;}
 {qbitString}	{ yylval.string = strdup(yytext); return QBIT_STR;}
+{newline}		{ lineNum++;}
 .				{ /* ignore other characters */ }
 
 %%
