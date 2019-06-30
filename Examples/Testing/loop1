@@ -1,0 +1,65 @@
+
+Int test = 0;
+
+
+while(TRUE){
+  test = 1;
+}
+
+while(!FALSE){
+  test = 2;
+}
+
+while(!!!TRUE){
+  test = 3;
+}
+
+while(1 > 0){
+  test = 4;
+}
+
+while(1 >= 0){
+  test = 5;
+}
+
+while(1 == 1){
+  test = 6;
+}
+
+while(1 != 0){
+  test = 7;
+}
+
+while(0 < 1){
+  test = 8;
+}
+
+while(0 <= 1){
+  test = 9;
+}
+
+while(TRUE && TRUE){
+  test = 10;
+}
+
+while(TRUE && !FALSE){
+  test = 11;
+}
+
+while(TRUE || FALSE){
+  test = 12;
+}
+
+while(TRUE && TRUE || FALSE){
+  test = 13;
+}
+
+while( (TRUE && FALSE) || (TRUE || FALSE) ){
+  test = 14;
+}
+
+while(!(FALSE && TRUE)){
+  test = 15;
+}
+
+exit;
