@@ -10,7 +10,7 @@ while(!FALSE){
   test = 2;
 }
 
-while(!!!TRUE){
+while(!!TRUE){
   test = 3;
 }
 
