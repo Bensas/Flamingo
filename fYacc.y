@@ -639,7 +639,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_END " {\n  public static void main(String[] args){\n"
 #define TAIL 
 
-int lineNum;
+int lineNum = 1;
 
 int main(int argc, char **argv)
 {
@@ -744,9 +744,9 @@ int num_of_digits(int n){
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        int msgLength = 40 + num_of_digits(lineNum);
+        int msgLength = 45 + num_of_digits(lineNum);
     	char* errormsg = malloc(msgLength);
-    	snprintf(errormsg, msgLength, "Error at line %d: Variable already declared\n", lineNum-1);
+    	snprintf(errormsg, msgLength, "Error at line %d: Variable already declared\n", lineNum);
         yyerror(errormsg);
         exit(1);
     }
@@ -756,7 +756,7 @@ void exit_if_variable_was_not_declared(char * id){
     if(!is_declared(id)){
     	int msgLength = 40 + num_of_digits(lineNum);
     	char* errormsg = malloc(msgLength);
-    	snprintf(errormsg, msgLength, "Error at line %d: Variable not declared\n", lineNum-1);
+    	snprintf(errormsg, msgLength, "Error at line %d: Variable not declared\n", lineNum);
         yyerror(errormsg);
         exit(1);
     }

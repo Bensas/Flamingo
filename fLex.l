@@ -20,7 +20,7 @@ comment 	   \/\/.*
 newline		   \n
 
 %%
-{comment}		{lineNum++;}
+{comment}		{}
 "!"				{ yylval.string = strdup(yytext); return SINGLE_TERM_OP; }
 "&&"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
 "||"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
