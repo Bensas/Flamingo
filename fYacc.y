@@ -637,7 +637,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\n\nimport static java.lang.Boolean.FALSE;\nimport static java.lang.Boolean.TRUE;\n\npublic class "
 #define DEFAULT_OUTPUT_CLASS "Main"
 #define HEAD_END " {\n  public static void main(String[] args){\n"
-#define TAIL 
+#define TAIL "  }\n}\n"
 
 int lineNum = 1;
 
@@ -645,7 +645,6 @@ int main(int argc, char **argv)
 {
     init_parser();
 	char* head;
-	char* tail = "  }\n}\n";
 	char* inputFile;
 	char* outputFile;
 	char* compileCommand;
@@ -715,7 +714,7 @@ int main(int argc, char **argv)
 
 	fputs(head, yyout);
 	int parsing_done=!yyparse();
-	fputs("  }\n}\n", yyout);
+	fputs(TAIL, yyout);
 
 	if(!parsing_done)
 	{

@@ -24,10 +24,10 @@ removeClassFiles:
 	$(REMOVE) *.class
 
 flamingo: lex.yy.c y.tab.c
-	$(GCC) lex.yy.c y.tab.c parser.c hashmap.c -o flamingompiler
+	$(GCC) lex.yy.c y.tab.c parser.c hashmap.c -o flamingompiler -Wno-unused-function
 
 y.tab.c: fYacc.y
-	$(YACC) fYacc.y
+	$(YACC) fYacc.y -Wno-conflicts-sr -Wno-conflicts-rr
 
 lex.yy.c: y.tab.c fLex.l
 	$(LEX) fLex.l
