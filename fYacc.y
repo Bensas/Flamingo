@@ -387,10 +387,10 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
 Declaration : DECL_INT ID {
-			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
 
             //Variable was not declared;
+			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             store_new_symbol($2->name, $2);
             update_key_type($2->name, INTEGER_TYPE);
 
@@ -399,10 +399,10 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_FLOAT ID {
-			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
 
             //Variable was not declared
+			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             store_new_symbol($2->name, $2);
             update_key_type($2->name, FLOAT_TYPE);
 
@@ -411,10 +411,10 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_STRING ID {
-			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
 
             //Variable was not declared
+			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             store_new_symbol($2->name, $2);
             update_key_type($2->name, TYPE_STRING);
 
@@ -423,11 +423,11 @@ Declaration : DECL_INT ID {
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-			int len = STATE_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
-        	$$ = malloc(len);
-
+			
             //Variable was not declared
+            int len = STATE_LEN + SPACE_LEN + strlen($2->name);
+        	$$ = malloc(len);
             store_new_symbol($2->name, $2);
             update_key_type($2->name, TYPE_REG);
 
@@ -454,6 +454,7 @@ Declaration : DECL_INT ID {
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
+            
             if($4.type == FLOAT_TYPE) {
                 int length = strlen($2->name) + SPACE_LEN + FLOAT_LENGTH + 20;
                 $$ = malloc(length);
@@ -470,7 +471,10 @@ Declaration : DECL_INT ID {
             printf("Decl float queda: %s\n", $$);
         }
         | DECL_STRING ID ASSIGN STRING {
+            exit_program_if_variable_was_declared($2->name);
+
             int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
+            
             $$ = malloc(len);
             $$[len] = '\0';
             snprintf($$,len+1, "String %s%c%s", $2->name, '=', $4);
@@ -478,6 +482,8 @@ Declaration : DECL_INT ID {
             printf("Definicion de string queda: %s\n", $$);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
+            exit_program_if_variable_was_declared($2->name);
+
             char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
             for(int i = 1 ; i < strlen($4)-1 ; i++){
@@ -567,6 +573,7 @@ Definition : ID ASSIGN NumericExpression {
             snprintf($$,len,"%s = new State(new Qbit[]{%s})",$1->name, qbitInitializations);
             free(qbitInitializations);
         }
+        ;
 
 NumericExpression :
   NumericExpression PLUS Term  {
