@@ -27,6 +27,7 @@ void update_key_type(char * key, var_type_t type);
 /* Auxiliar functions
 */
 int num_of_digits(int n);
+void exit_if_variable_was_not_declared(char * id);
 void exit_program_if_variable_was_declared(char * id);
 
 //int yywrap();

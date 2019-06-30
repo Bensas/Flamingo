@@ -169,6 +169,7 @@ PrintStatement : PRINT STRING {
 		snprintf($$,len, "System.out.println(%s)", $2);
 	}
 	| PRINT ID {
+        exit_if_variable_was_not_declared($2->name);
 		if ($2->var_type == REG_TYPE){
 			int len = strlen($2->name) + 21;
 			$$ = malloc(len);
@@ -231,14 +232,16 @@ RelationalTerm : Unit { int len = strlen($1.text)+3;
             $$ = malloc(len);
             snprintf($$,len,"%s",$1.text);
         }
-        | ID {  if($1->var_type==INTEGER_TYPE || $1->var_type==FLOAT_TYPE){
+        | ID {  
+            exit_if_variable_was_not_declared($1->name);
+            if($1->var_type==INTEGER_TYPE || $1->var_type==FLOAT_TYPE){
                     int len = $1->name+3; 
 	 	            $$ = malloc(len);
 	 	            snprintf($$,len,"%s",$1->name);
-                } 
-                else{
-                    exit(1);
-                }
+            } 
+            else{
+                exit(1);
+            }
         }
         ;
 BoolTerm : TRUE { 
@@ -344,6 +347,7 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
+                exit_if_variable_was_not_declared($1->name);
                 int firstDeclaration = 0; // False
                
                 if(is_declared($1->name)) {
@@ -402,6 +406,7 @@ Definition : ID ASSIGN NumericExpression {
                 }
             }
         | ID ASSIGN QBIT_STR {
+            exit_if_variable_was_not_declared($1->name);
         	char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
 
             for(int i = 1 ; i < strlen($3)-1 ; i++){
@@ -468,6 +473,7 @@ NumericExpression :
                     }
 
   | MEASURE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
+        exit_if_variable_was_not_declared($3->name);
   		$$.type = INTEGER_TYPE;
   		$$.resolvable = 0;
   		int textLength = MEASURE_QBIT_LENGTH + strlen($3->name) + num_of_digits((int)$4.value) + 1;
@@ -561,9 +567,7 @@ Term :
 
 Unit :
   ID  {
-      if( ! is_declared($1->name)) {
-          yyerror("Undeclared symbol used in expression\n");
-      }
+      exit_if_variable_was_not_declared($1->name);
       $$.resolvable = 0;
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
@@ -597,7 +601,8 @@ Unit :
 
 GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
-			int len;
+      exit_if_variable_was_not_declared($3->name);
+	  int len;
       if (strcmp($1, "ID") != 0){
 		  len = strlen($3->name) +
           		((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 35 : 36) +
@@ -748,7 +753,14 @@ int num_of_digits(int n){
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        yyerror("Symbol already in use\n");
+        yyerror("Variable already declared\n");
+        exit(1);
+    }
+}
+
+void exit_if_variable_was_not_declared(char * id){
+    if(!is_declared(id)){
+        yyerror("Variable not declared\n");
         exit(1);
     }
 }
