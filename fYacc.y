@@ -25,6 +25,7 @@ int yywrap()
 #define STATE_LEN 6
 #define IF_STATEMENT_LENGTH 7
 #define IF_ELSE_STATEMENT_LENGTH 14
+#define MEASURE_QBIT_LENGTH 14
 %}
 
 %union {
@@ -381,7 +382,7 @@ RelationalExp : NumericExpression  SMALLER_OR_EQ NumericExpression {
 				$$.resolvable = 1;
 				if($$.value == 1){
 					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-				}else{
+				} else {
 					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
 				}
 			}
@@ -451,7 +452,7 @@ Declaration : DECL_INT ID {
             update_key_type($2->name, INTEGER_TYPE);
 
             if($4.type == INTEGER_TYPE) {
-                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + num_of_digits($4.value) +1;
+                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + strlen($4.text) + 1;
                 $$ = malloc(len);
                 snprintf($$,len, "%s %s=%s", "int", $2->name, $4.text);
             } else {
@@ -640,6 +641,14 @@ NumericExpression :
                             sprintf($$.text, "%s - %s", $1.text, $3.text);
                         }
                     }
+
+  | MEASURE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
+  		$$.type = INTEGER_TYPE;
+  		$$.resolvable = 0;
+  		int textLength = MEASURE_QBIT_LENGTH + strlen($3->name) + num_of_digits((int)$4.value) + 1;
+  		$$.text = malloc(textLength);
+  		snprintf($$.text,textLength, "%s.measureQbit(%d)", $3->name, (int)$4.value);
+  }
   | Term  {
             $$.type = $1.type;
             if($1.resolvable) {
@@ -729,9 +738,9 @@ Term :
               $$.resolvable = 0;
           }
           $$.text = $1.text;
-					printf("\033[36m");
+			//printf("\033[36m");
           printf("UNIT type of: %d\n", $$.type);
-					printf("\033[37m");
+			//printf("\033[37m");
         }
   ;
 
