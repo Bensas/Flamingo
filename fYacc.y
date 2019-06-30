@@ -78,7 +78,7 @@ int yywrap()
 
 
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement IfStatement Function BoolTerm BoolExp BoolRelationalTerm RelationalTerm
+%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement IfStatement Function BoolTerm BoolExp BoolRelationalTerm
 
 %%
 
@@ -134,6 +134,11 @@ Statement : Declaration END {
     	    snprintf($$,len, "%s;", $1);
         }
     | BoolExp END { 
+            int len = strlen($1) + 10;
+    	    $$ = malloc(len);
+            snprintf($$,len, "%s;", $1);
+        }
+    | BoolRelationalTerm END { 
             int len = strlen($1) + 10;
     	    $$ = malloc(len);
             snprintf($$,len, "%s;", $1);
@@ -210,13 +215,24 @@ BoolExp : SINGLE_TERM_OP BoolExp {
             $$=malloc(len);
             snprintf($$,len,"(%s)",$2);
         }
-        | BoolTerm {;}
-        | BoolRelationalTerm {;}
+        ;
+
+BoolTerm : TRUE { 
+            int len = 7; // true
+	 	    $$ = malloc(len);
+	 	    snprintf($$,len,"true");
+        }
+        | FALSE {
+            int len = 8; // false
+	 	    $$ = malloc(len);
+	 	    snprintf($$,len,"false");
+        }
+        ;
         
-BoolRelationalTerm : RelationalTerm RELATIONAL_OP RelationalTerm {
-            int len=2+strlen($1)+strlen($3)+3;
+BoolRelationalTerm : Unit RELATIONAL_OP Unit {
+            int len=2+strlen($1.text)+strlen($3.text)+3;
             $$=malloc(len);
-            snprintf($$,len,"%s%s%s",$1,$2,$3);
+            snprintf($$,len,"%s%s%s",$1.text,$2,$3.text);
         }
         | BoolRelationalTerm RELATIONAL_OP BoolRelationalTerm {
             int len=2+strlen($1)+strlen($3)+3;
@@ -227,35 +243,6 @@ BoolRelationalTerm : RelationalTerm RELATIONAL_OP RelationalTerm {
             int len=2+strlen($2)+3;
             $$=malloc(len);
             snprintf($$,len,"(%s)",$2);
-        }
-        | RelationalTerm {;}
-        ;
-
-RelationalTerm : Unit { int len = strlen($1.text)+3;
-            $$ = malloc(len);
-            snprintf($$,len,"%s",$1.text);
-        }
-        | ID {  
-            exit_if_variable_was_not_declared($1->name);
-            if($1->var_type==INTEGER_TYPE || $1->var_type==FLOAT_TYPE){
-                    int len = strlen($1->name)+3; 
-	 	            $$ = malloc(len);
-	 	            snprintf($$,len,"%s",$1->name);
-            } 
-            else{
-                exit(1);
-            }
-        }
-        ;
-BoolTerm : TRUE { 
-            int len = 7; // true
-	 	    $$ = malloc(len);
-	 	    snprintf($$,len,"true");
-        }
-        | FALSE {
-            int len = 8; // false
-	 	    $$ = malloc(len);
-	 	    snprintf($$,len,"false");
         }
         ;
 
