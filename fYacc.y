@@ -35,11 +35,6 @@ int yywrap()
       int resolvable;
       char * text;
   } number;
-  struct boolean{
-		int value;
-		int resolvable;
-		char * text;
-	} boolean;
   char * string;
   char * gate;
   struct sym * id;
@@ -636,19 +631,8 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_END " {\n  public static void main(String[] args){\n"
 #define TAIL 
 
-void printVarTypes() {
-	printf("\033[34m");
-    printf("UNDEF_TYPE: %d\n", UNDEF_TYPE);
-    printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
-    printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
-    printf("STRING_TYPE: %d\n", STRING_TYPE);
-    printf("REG_TYPE: %d\n", REG_TYPE);
-	printf("\033[37m");
-}
-
 int main(int argc, char **argv)
 {
-    printVarTypes();
     init_parser();
 	char* head;
 	char* tail = "  }\n}\n";
