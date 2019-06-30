@@ -15,7 +15,6 @@ typedef enum { TYPE_UNDEF = 0, INTEGER_TYPE, FLOAT_TYPE, TYPE_STRING, TYPE_REG }
 typedef struct sym
 {
     char *name;
-    char *str;
     var_type_t var_type;
 } sym;
 
@@ -27,8 +26,6 @@ int is_declared(char * key);
 sym * symlook(char * sym_name);
 void store_new_symbol(char * key, sym * value);
 void update_key_type(char * key, var_type_t type);
-void update_key_value(char * key, char * value);
-
 
 /* Auxiliar functions
 */

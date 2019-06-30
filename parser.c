@@ -34,16 +34,6 @@ void store_new_symbol(char * key, sym * value)
     hashmap_put(map, key, (any_t)value);
 }
 
-void update_key_value(char * key, char * value)
-{
-    any_t * pointer=malloc(sizeof(*pointer));
-    int result=hashmap_get(map,key,pointer);
-    if(result==MAP_OK) {
-        ((sym *)*pointer)->str=value;
-    }
-    free(pointer);
-}
-
 void update_key_type(char * key, var_type_t type)
 {
     any_t * pointer=malloc(sizeof(*pointer));
