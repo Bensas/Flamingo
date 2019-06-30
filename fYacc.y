@@ -459,7 +459,7 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-
+            
             printf("Decl int queda: %s\n", $$);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
@@ -475,7 +475,7 @@ Declaration : DECL_INT ID {
             }
             store_new_symbol($2->name, $2);
             update_key_type($2->name, FLOAT_TYPE);
-            printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
+            // printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
             $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
             sprintf($$, "float %s = %s", $2->name, $4.text);
             printf("Decl float queda: %s\n", $$);
@@ -529,7 +529,9 @@ Definition : ID ASSIGN NumericExpression {
                         exit(1);
                     }
                 } else {
+                    printf("Declaring the variable %s in Definition\n", $1->name);
                     store_new_symbol($1->name, $1);
+                    update_key_type($1->name, $3.type);
                     firstDeclaration = 1; // True
                 }
 
@@ -745,7 +747,11 @@ Term :
   ;
 
 Unit :
-  ID  {$$.resolvable = 0;
+  ID  {
+      if( ! is_declared($1->name)) {
+          yyerror("Undeclared symbol used in expression\n");
+      }
+      $$.resolvable = 0;
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
       $$.type = aux->var_type;
@@ -814,13 +820,13 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define TAIL 
 
 void printVarTypes() {
-		printf("\033[34m");
+	printf("\033[34m");
     printf("UNDEF_TYPE: %d\n", UNDEF_TYPE);
     printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
     printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
     printf("STRING_TYPE: %d\n", STRING_TYPE);
     printf("REG_TYPE: %d\n", REG_TYPE);
-		printf("\033[37m");
+	printf("\033[37m");
 }
 
 int main(int argc, char **argv)
