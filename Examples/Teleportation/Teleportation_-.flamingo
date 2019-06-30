@@ -1,6 +1,6 @@
 Reg reg = |100>;
 H(reg 0);
-FLAMINGO "Register before algorithm:";
+FLAMINGO "We want to teleport the value of the first qbit to that of the third one.";
 FLAMINGO reg;
 
 //We first generate a bell state between Qbits 1 and 2
@@ -12,18 +12,17 @@ CNOT(reg 0);
 H(reg 0);
 
 //We apply measurements and store them in variables
-Int measure0 = M(reg 0);
-Int measure1 = M(reg 1);
+Int firstMeasure = M(reg 0);
+Int secondMeasure = M(reg 1);
 
 //Based on the values of the measurements ,
 //we apply corrections to get the desired result
-if (measure1){
+if (secondMeasure){
 	X(reg 2);
 }
 
-if (measure0){
+if (firstMeasure){
 	X(reg 2);
 }
 
-FLAMINGO "Register after algorithm:";
 FLAMINGO reg;
