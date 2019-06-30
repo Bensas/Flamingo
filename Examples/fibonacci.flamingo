@@ -1,0 +1,11 @@
+Int current = 0;
+Int previous = 1;
+Int counter = 1;
+while (counter <= 10){
+	Int res = current + previous;
+	previous = current;
+	current = res;
+	FLAMINGO res;
+	counter = counter + 1;
+}
+FLAMINGO "Success!";
