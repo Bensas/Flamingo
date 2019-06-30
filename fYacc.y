@@ -170,7 +170,7 @@ PrintStatement : PRINT STRING {
 	}
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
-		if ($2->var_type == TYPE_REG){
+		if ($2->var_type == REG_TYPE){
 			int len = strlen($2->name) + 21;
 			$$ = malloc(len);
 			snprintf($$, len, "%s.printAmplitudes()", $2->name);
@@ -416,7 +416,7 @@ Declaration : DECL_INT ID {
             //Variable was not declared
 			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             store_new_symbol($2->name, $2);
-            update_key_type($2->name, TYPE_STRING);
+            update_key_type($2->name, STRING_TYPE);
 
             $$ = malloc(len);
         	snprintf($$,len + 1, "String %s", $2->name);
@@ -429,7 +429,7 @@ Declaration : DECL_INT ID {
             int len = STATE_LEN + SPACE_LEN + strlen($2->name);
         	$$ = malloc(len);
             store_new_symbol($2->name, $2);
-            update_key_type($2->name, TYPE_REG);
+            update_key_type($2->name, REG_TYPE);
 
         	snprintf($$,len + 1, "State %s", $2->name);
             printf("Fue una declaracion: %s\n", $$);
@@ -472,6 +472,9 @@ Declaration : DECL_INT ID {
         }
         | DECL_STRING ID ASSIGN STRING {
             exit_program_if_variable_was_declared($2->name);
+
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, STRING_TYPE);
 
             int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
             
@@ -791,11 +794,11 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 void printVarTypes() {
 		printf("\033[34m");
-    printf("TYPE_UNDEF: %d\n", TYPE_UNDEF);
+    printf("UNDEF_TYPE: %d\n", UNDEF_TYPE);
     printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
     printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
-    printf("TYPE_STRING: %d\n", TYPE_STRING);
-    printf("TYPE_REG: %d\n", TYPE_REG);
+    printf("STRING_TYPE: %d\n", STRING_TYPE);
+    printf("REG_TYPE: %d\n", REG_TYPE);
 		printf("\033[37m");
 }
 
