@@ -96,9 +96,8 @@ int yywrap()
 
 Program : Function {
          fputs($1, yyout);
-				 exit(0);
         }
-				| EXIT END	{exit(0);}
+		| EXIT END	{;}
     ;
 
 Function : Statement {
@@ -151,18 +150,20 @@ WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET F
     ;
 
 PrintStatement : PRINT STRING {
-		int len = 20 + strlen($2);
+		int len = 21 + strlen($2);
 		$$ = malloc(len);
 		snprintf($$,len, "System.out.println(%s)", $2);
 	}
 	| PRINT ID {
 		//This code will work once we have a structure for variables so we can typecheck
 		if ($2->var_type == TYPE_REG){
-			$$ = malloc(strlen($2->name) + 19);
-			sprintf($$, "%s.printAmplitudes()", $2->name);
+			int len = strlen($2->name) + 21;
+			$$ = malloc(len);
+			snprintf($$, len, "%s.printAmplitudes()", $2->name);
 		} else {
-			$$ = malloc(strlen($2->name) + 21);
-			sprintf($$, "System.out.println(%s)", $2->name);
+			int len = strlen($2->name) + 21;
+			$$ = malloc(len);
+			snprintf($$, len, "System.out.println(%s)", $2->name);
 		}
 		;}
 	;
@@ -475,9 +476,9 @@ Declaration : DECL_INT ID {
             }
             int len = 6 + strlen($2->name) + 27 + strlen(qbitInitializations);
             $$ = malloc(len);
-            snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
+            snprintf($$,len,"State %s = new State(new Qbit[]{%s})",$2->name, qbitInitializations);
             printf("Acabo de escribir:\n");
-            printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
+            printf("State %s = new State(new Qbit[]{%s})\n",$2->name, qbitInitializations);
 
             printf("Definitooon\n");		//FIXME remove this when this joke gets old
 
@@ -722,9 +723,9 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
 			int len;
       if (strcmp($1, "ID") != 0){
-					len = 4 +
-          ((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 31 : 35)+
-          num_of_digits((int)$4.value);
+		  len = 4 +
+          		((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 35 : 36) +
+          		num_of_digits((int)$4.value);
           $$ = malloc(len);
 
           if (strcmp($1, "H") == 0){
@@ -752,7 +753,7 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\n\nimport static java.lang.Boolean.FALSE;\nimport static java.lang.Boolean.TRUE;\n\npublic class "
 #define DEFAULT_OUTPUT_CLASS "Main"
 #define HEAD_END " {\n  public static void main(String[] args){\n"
-#define TAIL "  }\n}\n"
+#define TAIL 
 
 void printVarTypes() {
 		printf("\033[34m");
@@ -769,7 +770,7 @@ int main(int argc, char **argv)
     printVarTypes();
     init_parser();
 	char* head;
-	char* tail = TAIL;
+	char* tail = "  }\n}\n";
 	char* inputFile;
 	char* outputFile;
 	char* compileCommand;
@@ -779,17 +780,40 @@ int main(int argc, char **argv)
 	int compileLen;
 	int runLen;
 
-	if(argc > 3)
+
+	outputFile = malloc(strlen(DEFAULT_OUTPUT_CLASS) + 6);
+    strcat(outputFile, DEFAULT_OUTPUT_CLASS);
+    strcat(outputFile, ".java");
+
+    head = malloc(strlen(HEAD_BEGINNING) + strlen(DEFAULT_OUTPUT_CLASS) + strlen(HEAD_END) + 1);
+	strcat(head, HEAD_BEGINNING);
+	strcat(head, DEFAULT_OUTPUT_CLASS);
+	strcat(head, HEAD_END);
+
+	compileLen = 7 + strlen(outputFile);
+	compileCommand = malloc(compileLen);
+	runLen = 6 + strlen(DEFAULT_OUTPUT_CLASS);
+	runCommand = malloc(runLen);
+	snprintf(compileCommand, compileLen, "javac %s", outputFile);
+	snprintf(runCommand, runLen, "java %s", DEFAULT_OUTPUT_CLASS);
+
+    if(argc > 1)
 	{
-		printf("Too many arguments!");
-		exit(1);
+		inputFile = argv[1];
+		yyin = fopen(inputFile,"r");
+		if(yyin == NULL)
+		{
+			printf("Failed to open %s!", inputFile);
+			exit(1);
+		}
 	}
-	else if(argc > 2)
+
+	if(argc > 2)
 	{
 		outputFile = strdup(argv[2]);
 		strcat(outputFile, ".java");
 
-		head = malloc(strlen(HEAD_BEGINNING) + strlen(argv[2]) + strlen(HEAD_END));
+		head = malloc(strlen(HEAD_BEGINNING) + strlen(argv[2]) + strlen(HEAD_END) + 1);
 		strcat(head, HEAD_BEGINNING);
 		strcat(head, argv[2]);
 		strcat(head, HEAD_END);
@@ -801,34 +825,14 @@ int main(int argc, char **argv)
 		snprintf(compileCommand, compileLen, "javac %s", outputFile);
 		snprintf(runCommand, runLen, "java %s", argv[2]);
 	}
-	if(argc > 1)
-	{
-		inputFile = argv[1];
-		yyin = fopen(inputFile,"r");
-		if(yyin == NULL)
-		{
-			printf("Failed to open %s!", inputFile);
-			exit(1);
-		}
-	}
-	else
-	{
-		outputFile = malloc(strlen(DEFAULT_OUTPUT_CLASS) + 6);
-		strcat(outputFile, DEFAULT_OUTPUT_CLASS);
-		strcat(outputFile, ".java");
 
-		head = malloc(strlen(HEAD_BEGINNING) + strlen(DEFAULT_OUTPUT_CLASS) + strlen(HEAD_END));
-		strcat(head, HEAD_BEGINNING);
-		strcat(head, DEFAULT_OUTPUT_CLASS);
-		strcat(head, HEAD_END);
-
-		compileLen = 7 + strlen(outputFile);
-		compileCommand = malloc(compileLen);
-		runLen = 6 + strlen(DEFAULT_OUTPUT_CLASS);
-		runCommand = malloc(runLen);
-		snprintf(compileCommand, compileLen, "javac %s", outputFile);
-		snprintf(runCommand, runLen, "java %s", DEFAULT_OUTPUT_CLASS);
+	if(argc > 3)
+	{
+		printf("Too many arguments!");
+		exit(1);
 	}
+
+	printf("%d\n", argc);
 
 	yyout = fopen(outputFile,"w");
 	if(yyout == NULL)
@@ -839,7 +843,7 @@ int main(int argc, char **argv)
 
 	fputs(head, yyout);
 	yyparse();
-	fputs(tail, yyout);
+	fputs("  }\n}\n", yyout);
 
 	// if(!parsing_done)
 	// {
