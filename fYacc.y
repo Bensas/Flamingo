@@ -195,6 +195,11 @@ BoolExp : SINGLE_TERM_OP BoolExp {
             $$=malloc(len);
             snprintf($$,len,"%s%s",$1,$2);
         }
+        | BoolExp DOUBLE_TERM_OP BoolExp { 
+                int len=2+strlen($1)+strlen($3)+3;
+                $$=malloc(len);
+                snprintf($$,len,"%s%s%s",$1,$2,$3);
+            } 
         | SINGLE_TERM_OP BoolTerm { 
                 int len=2+strlen($2)+3;
                 $$=malloc(len);
@@ -228,6 +233,11 @@ BoolRelationalTerm : Unit RELATIONAL_OP Unit {
             int len=2+strlen($1.text)+strlen($3.text)+3;
             $$=malloc(len);
             snprintf($$,len,"%s%s%s",$1.text,$2,$3.text);
+        }
+        | BoolRelationalTerm RELATIONAL_OP BoolRelationalTerm {
+            int len=2+strlen($1)+strlen($3)+3;
+            $$=malloc(len);
+            snprintf($$,len,"%s%s%s",$1,$2,$3);
         }
         | OPEN_PARENTHESIS BoolRelationalTerm CLOSE_PARENTHESIS {
             int len=2+strlen($2)+3;
