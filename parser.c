@@ -22,11 +22,10 @@ int is_declared(char * key)
     return UNDECLARED;
 }
 
-void declare(char * key)
+void declare(char * key, sym * symbol, var_type_t type)
 {
-    any_t * pointer=malloc(sizeof(*pointer));
-    int result=hashmap_get(map,key,pointer);
-    free(pointer);
+    store_new_symbol(key, symbol);
+    update_key_type(key, type);
 }
 
 void store_new_symbol(char * key, sym * value)

@@ -17,7 +17,7 @@ typedef struct sym
 
 /* Functions for struct sym management
 */
-void declare(char * key);
+void declare(char * key, sym * symbol, var_type_t type);
 void init_parser();
 int is_declared(char * key);
 sym * symlook(char * sym_name);

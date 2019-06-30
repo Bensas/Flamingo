@@ -257,97 +257,73 @@ BoolTerm : TRUE {
 
 Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
+            declare($2->name, $2, INTEGER_TYPE);
 
-            //Variable was not declared;
 			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, INTEGER_TYPE);
-
             $$ = malloc(len);
         	snprintf($$,len + 1, "int %s", $2->name);
         }
         | DECL_FLOAT ID {
             exit_program_if_variable_was_declared($2->name);
+            declare($2->name, $2, FLOAT_TYPE);
 
-            //Variable was not declared
 			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, FLOAT_TYPE);
-
             $$ = malloc(len);
         	snprintf($$,len + 1, "float %s", $2->name);
         }
         | DECL_STRING ID {
             exit_program_if_variable_was_declared($2->name);
-
-            //Variable was not declared
+            declare($2->name, $2, STRING_TYPE);
+            
 			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, STRING_TYPE);
-
             $$ = malloc(len);
         	snprintf($$,len + 1, "String %s", $2->name);
         }
         | DECL_REGISTER ID {
             exit_program_if_variable_was_declared($2->name);
+            declare($2->name, $2, REG_TYPE);
 			
-            //Variable was not declared
             int len = STATE_LEN + SPACE_LEN + strlen($2->name);
         	$$ = malloc(len);
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, REG_TYPE);
-
         	snprintf($$,len + 1, "State %s", $2->name);
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
+            declare($2->name, $2, INTEGER_TYPE);
 
-            //Variable was not declared
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, INTEGER_TYPE);
-
-            if($4.type == INTEGER_TYPE) {
-                int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + strlen($4.text) + 1;
-                $$ = malloc(len);
-                snprintf($$,len, "%s %s=%s", "int", $2->name, $4.text);
-            } else {
+            if($4.type != INTEGER_TYPE) {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
+
+            int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + strlen($4.text) + 1;
+            $$ = malloc(len);
+            snprintf($$,len, "%s %s=%s", "int", $2->name, $4.text);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
-            
-            if($4.type == FLOAT_TYPE) {
-                int length = strlen($2->name) + SPACE_LEN + FLOAT_LENGTH + 20;
-                $$ = malloc(length);
-                sprintf($$, "%s %s=%f", "float", $2->name, $4.value);
-            } else {
-                perror("Error: Int to Float");
+            declare($2->name, $2, FLOAT_TYPE);
+
+            if($4.type != FLOAT_TYPE) {
                 exit(1);
+                perror("Error: Int to Float");
             }
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, FLOAT_TYPE);
-            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
+
+            int len=FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text);
+            $$ = malloc(len);
             sprintf($$, "float %s = %s", $2->name, $4.text);
         }
         | DECL_STRING ID ASSIGN STRING {
             exit_program_if_variable_was_declared($2->name);
+            declare($2->name, $2, STRING_TYPE);
 
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, STRING_TYPE);
-
-            int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
-            
+            int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 3 + strlen($4);
             $$ = malloc(len);
-            $$[len] = '\0';
             snprintf($$,len+1, "String %s%c%s", $2->name, '=', $4);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
             exit_program_if_variable_was_declared($2->name);
-
-            store_new_symbol($2->name, $2);
-            update_key_type($2->name, REG_TYPE);
+            declare($2->name, $2, REG_TYPE);
 
             char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
