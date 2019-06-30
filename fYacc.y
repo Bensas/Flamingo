@@ -28,9 +28,15 @@ int yywrap()
 %union {
   struct number {
       float value;
-      enum type {INTEGER_TYPE, FLOAT_TYPE} type;
+      var_type_t type;
+      int resolvable;
+      char * text;
   } number;
-  int boolean;
+  struct boolean{
+		int value;
+		int resolvable;
+		char * text;
+	} boolean;
   char * string;
   char * gate;
   struct sym * id;
@@ -80,7 +86,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Statement Declaration PrintStatement
+%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement Function
 
 %%
 
@@ -88,12 +94,23 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Statement {
+Program : Function {
          fputs($1, yyout);
+				 exit(0);
         }
-        | Program Statement {
-         fputs($2, yyout);
-        }
+				| EXIT END	{exit(0);}
+    ;
+
+Function : Statement {
+		$$ = $1;
+		//printf("Function->Statement: alive with 1 statement with len %lu\n",strlen($$));
+		}
+	| Function Statement {
+		//printf("Function->Function Statement: alive with more than 1 statement with len %lu\n",strlen($$));
+		int len = strlen($1) + strlen($2) +2;
+	 	$$ = malloc(len);
+	 	snprintf($$,len,"%s\n%s",$1,$2);
+		}
     ;
 
 Statement : Declaration END {
@@ -102,7 +119,11 @@ Statement : Declaration END {
         snprintf($$,len, "%s;", $1);
     }
     | IfStatement {;}
-    | WhileStatement {;}
+    | WhileStatement {
+			int len = strlen($1) + 1;
+    	$$ = malloc(len);
+        snprintf($$,len, "%s;", $1);
+		}
     | PrintStatement END {
 			int len = strlen($1) + 2;
     	$$ = malloc(len);
@@ -111,9 +132,8 @@ Statement : Declaration END {
     | GateApply END {
 			int len = strlen($1) + 2;
 			$$ = malloc(len);
-    	snprintf($$,len, "%s;", $2);
+    	snprintf($$,len, "%s;", $1);
       }
-    | EXIT END {exit(0);}
     ;
 
 IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
@@ -121,7 +141,13 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program
             | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE IfStatement {;}
     ;
 
-WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
+WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
+
+			int len = 7 + strlen($3.text) + 4 + strlen($6) + 2 +1;
+			$$ = malloc(len);
+
+			snprintf($$,len,"while( %s ){\n%s\n}",$3.text,$6);
+			}
     ;
 
 PrintStatement : PRINT STRING {
@@ -141,27 +167,206 @@ PrintStatement : PRINT STRING {
 		;}
 	;
 
-BoolExp : BoolExp AND BoolExpOr {$$ = $1 && $3;}
-	| BoolExpOr {$$ = $1;}
+BoolExp : BoolExp AND BoolExpOr {
+		$$.value = $1.value && $3.value;
+		int len = 2;
+		if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+				len = strlen($1.text) + 4 + strlen($3.text)+1;
+				$$.text = malloc(len);
+				snprintf($$.text,len,"%s && %s",$1.text,$3.text);
+		}else{
+			$$.resolvable = 1;
+			if($$.value == 1){
+				$$.text=malloc(5); snprintf($$.text,5,"TRUE");
+			}else{
+				$$.text=malloc(6); snprintf($$.text,6,"FALSE");
+			}
+		}
+		}
+	| BoolExpOr {
+		$$.value = $1.value;
+		$$.resolvable = $1.resolvable;
+		int len = strlen($1.text)+1;
+		$$.text = malloc(len);
+		snprintf($$.text,len,"%s",$1.text);
+	}
 	;
 
-BoolExpOr : BoolExpOr OR BoolVal {$$ = $1 || $3;}
-	| BoolVal {$$ = $1;}
+BoolExpOr : BoolExpOr OR BoolVal {
+		$$.value = $1.value || $3.value;
+		int len = 2;
+		if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+				len = strlen($1.text) + 4 + strlen($3.text)+1;
+				$$.text = malloc(len);
+				snprintf($$.text,len,"%s || %s",$1.text,$3.text);
+		}else{
+			$$.resolvable = 1;
+			if($$.value == 1){
+				$$.text=malloc(5); snprintf($$.text,5,"TRUE");
+			}else{
+				$$.text=malloc(6); snprintf($$.text,6,"FALSE");
+			}
+		}
+		}
+	| BoolVal {
+		$$.value = $1.value;
+		$$.resolvable = $1.resolvable;
+		int len = strlen($1.text)+1;
+		$$.text = malloc(len);
+		snprintf($$.text,len,"%s",$1.text);
+		}
 	;
 
-BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {$$ = $2;}
-    | NOT BoolVal {$$ = 1 - $2;}
-    | TRUE {$$ = 1;}
-    | FALSE {$$ = 0;}
-    | RelationalExp {$$ = $1;}
+BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {
+			$$.value = $2.value;$$.resolvable = $2.resolvable;
+				if($2.resolvable == 0){
+					int len = 2+strlen($2.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"(%s)",$2.text);
+				}else{
+					if($$.value == 1){
+						$$.text=malloc(5); snprintf($$.text,5,"TRUE");
+					}else{
+						$$.text=malloc(6); snprintf($$.text,6,"FALSE");
+					}
+				}
+		}
+    | NOT BoolVal {
+			$$.value = 1 - $2.value; $$.resolvable = $2.resolvable;
+			if($2.resolvable == 0){
+					int len = 1+strlen($2.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"!%s",$2.text);
+			}else{
+				if($$.value == 1){
+					$$.text=malloc(5); snprintf($$.text,5,"TRUE");
+				}else{
+					$$.text=malloc(6); snprintf($$.text,6,"FALSE");
+				}
+			}
+			}
+    | TRUE {$$.value = 1;	$$.resolvable=1; $$.text=malloc(5); snprintf($$.text,5,"TRUE");}
+    | FALSE {$$.value = 0;	$$.resolvable=1; $$.text=malloc(6); snprintf($$.text,6,"FALSE");}
+    | RelationalExp {
+			$$.value = $1.value;	$$.resolvable = $1.resolvable;
+			if($1.resolvable == 0){
+					int len = strlen($1.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s",$1.text);
+			}else{
+				if($$.value == 1){
+					$$.text=malloc(5); snprintf($$.text,5,"TRUE");
+				}else{
+					$$.text=malloc(6); snprintf($$.text,6,"FALSE");
+				}
+			}
+		}
     ;
 
-RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.value <= $3.value)?1:0;}
-    | NumericExpression GREATER_OR_EQ NumericExpression {$$ = ($1.value >= $3.value)?1:0;}
-    | NumericExpression EQ NumericExpression {$$ = ($1.value == $3.value)?1:0;}
-    | NumericExpression NOT_EQ NumericExpression {$$ = ($1.value != $3.value)?1:0;}
-    | NumericExpression GREATER_THAN NumericExpression {$$ = ($1.value > $3.value)?1:0;}
-    | NumericExpression SMALLER_THAN NumericExpression {$$ = ($1.value < $3.value)?1:0;}
+RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
+				$$.value = ($1.value <= $3.value)?1:0;
+				int len;
+				if($1.resolvable == 0 || $3.resolvable == 0){
+						$$.resolvable = 0;
+						len = strlen($1.text) + 4 + strlen($3.text)+1;
+						$$.text = malloc(len);
+						snprintf($$.text,len,"%s <= %s",$1.text,$3.text);
+				}else{
+					$$.resolvable = 1;
+					if($$.value == 1){
+						len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+					}else{
+						len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+					}
+				}
+			}
+    | NumericExpression GREATER_OR_EQ NumericExpression {
+				$$.value = ($1.value >= $3.value)?1:0;
+				int len;
+				if($1.resolvable == 0 || $3.resolvable == 0){
+					$$.resolvable = 0;
+					len = strlen($1.text) + 4 + strlen($3.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s >= %s",$1.text,$3.text);
+				}else{
+					$$.resolvable = 1;
+					if($$.value == 1){
+						len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+					}else{
+						len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+					}
+				}
+			}
+    | NumericExpression EQ NumericExpression {
+			$$.value = ($1.value == $3.value)?1:0;
+			int len;
+			if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+					len = strlen($1.text) + 4 + strlen($3.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s == %s",$1.text,$3.text);
+			}else{
+				$$.resolvable = 1;
+				if($$.value == 1){
+					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+				}else{
+					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+				}
+			}
+			}
+    | NumericExpression NOT_EQ NumericExpression {
+			$$.value = ($1.value != $3.value)?1:0;
+			int len;
+			if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+					len = strlen($1.text) + 4 + strlen($3.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s != %s",$1.text,$3.text);
+			}else{
+				$$.resolvable = 1;
+				if($$.value == 1){
+					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+				}else{
+					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+				}
+			}
+			}
+    | NumericExpression GREATER_THAN NumericExpression {
+			$$.value = ($1.value > $3.value)?1:0;
+			int len;
+			if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+					len = strlen($1.text) + 3 + strlen($3.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s > %s",$1.text,$3.text);
+			}else{
+				$$.resolvable = 1;
+				if($$.value == 1){
+					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+				}else{
+					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+				}
+			}
+			}
+    | NumericExpression SMALLER_THAN NumericExpression {
+			$$.value = ($1.value < $3.value)?1:0;
+			int len;
+			if($1.resolvable == 0 || $3.resolvable == 0){
+				$$.resolvable = 0;
+					len = strlen($1.text) + 3 + strlen($3.text)+1;
+					$$.text = malloc(len);
+					snprintf($$.text,len,"%s < %s",$1.text,$3.text);
+			}else{
+				$$.resolvable = 1;
+				if($$.value == 1){
+					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+				}else{
+					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+				}
+			}
+		}
     ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
@@ -169,92 +374,174 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {$$ = ($1.valu
 Declaration : DECL_INT ID {
 			int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared;
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, INTEGER_TYPE);
+
             $$ = malloc(len);
-        	snprintf($$,len, "int %s", $2->name);
-        	$2->var_type = TYPE_INT;
-            printf("Fue una declaracion\n");
+        	snprintf($$,len + 1, "int %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_FLOAT ID {
 			int len = FLOAT_LENGTH + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, FLOAT_TYPE);
+
             $$ = malloc(len);
-        	snprintf($$,len, "float %s", $2->name);
-        	$2->var_type = TYPE_FLOAT;
-            printf("Fue una declaracion\n");
+        	snprintf($$,len + 1, "float %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_STRING ID {
 			int len = STRING_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, TYPE_STRING);
+
             $$ = malloc(len);
-        	snprintf($$,len, "String %s", $2->name);
-        	$2->var_type = TYPE_STRING;
+        	snprintf($$,len + 1, "String %s", $2->name);
             printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
-					int len = STATE_LEN + SPACE_LEN + strlen($2->name);
+			int len = STATE_LEN + SPACE_LEN + strlen($2->name);
             exit_program_if_variable_was_declared($2->name);
         	$$ = malloc(len);
-        	snprintf($$,len, "State %s", $2->name);
-        	$2->var_type = TYPE_REG;
-            printf("Fue una declaracion\n");
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, TYPE_REG);
+
+        	snprintf($$,len + 1, "State %s", $2->name);
+            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
+
+            //Variable was not declared
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, INTEGER_TYPE);
+
             if($4.type == INTEGER_TYPE) {
                 int len = INTEGER_LENGTH + SPACE_LEN + strlen($2->name) + 1 + num_of_digits($4.value) +1;
                 $$ = malloc(len);
-                snprintf($$,len, "%s %s=%d", "int", $2->name, (int)$4.value);
-                $2->var_type = TYPE_INT;
+                snprintf($$,len, "%s %s=%s", "int", $2->name, $4.text);
             } else {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-            printf("Defined an integer variable: %s, value of %d\n", $$, (int)$4.value);
+
+            printf("Decl int queda: %s\n", $$);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
             if($4.type == FLOAT_TYPE) {
-                int len = strlen($2) + SPACE_LEN + FLOAT_LENGTH + 20;
-                $$ = malloc(len);
-                snprintf($$,len, "%s %s=%f", "float", $2->name, $4.value);
-                $2->var_type = TYPE_FLOAT;
+                int length = strlen($2->name) + SPACE_LEN + FLOAT_LENGTH + 20;
+                $$ = malloc(length);
+                sprintf($$, "%s %s=%f", "float", $2->name, $4.value);
             } else {
                 perror("Error: Int to Float");
                 exit(1);
             }
-            printf("Defined a float variable: %s, value of %f\n", $$, $4.value);
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, FLOAT_TYPE);
+            printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
+            $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
+            sprintf($$, "float %s = %s", $2->name, $4.text);
+            printf("Decl float queda: %s\n", $$);
         }
         | DECL_STRING ID ASSIGN STRING {
-						int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
-						$$ = malloc(len);
-						$$[len] = '\0';
-						snprintf($$,len, "%s%c%s", $2->name, '=', $4);
-						$2->var_type = TYPE_STRING;
+            int len = STRING_LEN + SPACE_LEN + strlen($2->name) + 1 + strlen($4);
+            $$ = malloc(len);
+            $$[len] = '\0';
+            snprintf($$,len+1, "String %s%c%s", $2->name, '=', $4);
             printf("Defined a string variable %s, value of %s\n", $$, $4);
+            printf("Definicion de string queda: %s\n", $$);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
-					char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
+            char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
-					for(int i = 1 ; i < strlen($4)-1 ; i++){
-						if ($4[i] == '0')
-							strcat(qbitInitializations, "new Qbit(1, 0)");
-						else if ($4[i] == '1')
-							strcat(qbitInitializations, "new Qbit(0, 1)");
-						if (i != strlen($4) - 2)
-							strcat(qbitInitializations, ",");
-					}
-					int len = 6 + strlen($2) + 27 + strlen(qbitInitializations);
-					$$ = malloc(len);
-					snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
-					$2->var_type = TYPE_REG;
-					printf("Acabo de escribir:\n");
-					printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
+            for(int i = 1 ; i < strlen($4)-1 ; i++){
+                if ($4[i] == '0')
+                    strcat(qbitInitializations, "new Qbit(1, 0)");
+                else if ($4[i] == '1')
+                    strcat(qbitInitializations, "new Qbit(0, 1)");
+                if (i != strlen($4) - 2)
+                    strcat(qbitInitializations, ",");
+            }
+            int len = 6 + strlen($2->name) + 27 + strlen(qbitInitializations);
+            $$ = malloc(len);
+            snprintf($$,len,"State %s = new State(newQbit[]{%s})",$2->name, qbitInitializations);
+            printf("Acabo de escribir:\n");
+            printf("State %s = new State(newQbit[]{%s})\n",$2->name, qbitInitializations);
 
-					printf("Definitooon\n");		//FIXME remove this when this joke gets old
+            printf("Definitooon\n");		//FIXME remove this when this joke gets old
 
-					free(qbitInitializations);
+            free(qbitInitializations);
         }
+        | Definition {$$ = $1; printf("Value of Decl: %s\n", $$);}
         ;
+
+Definition : ID ASSIGN NumericExpression {
+                int firstDeclaration = 0;
+                if(is_declared($1->name)) {
+                    //Type verifications
+                    if($1->var_type != $3.type) {
+                        perror("Error while defining");
+                        exit(1);
+                    }
+                } else {
+                    store_new_symbol($1->name, $1);
+                    update_key_type($1->name, $3.type);
+                    firstDeclaration = 1;
+                }
+                int length = 0;
+                length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
+                if($3.type == INTEGER_TYPE) {
+                    length += INTEGER_LENGTH + 1;
+                } else {
+                    length += FLOAT_LENGTH + 1;
+                }
+                if($3.resolvable) {
+                    length += num_of_digits($3.value);
+                    $$ = malloc(length);
+                    if($3.type == INTEGER_TYPE) {
+                        if(firstDeclaration) {
+                            sprintf($$, "int %s = %d", $1->name, (int)$3.value);
+                        } else {
+                            sprintf($$, "%s = %d", $1->name, (int)$3.value);
+                        }
+                    } else {
+                        if(firstDeclaration) {
+                            sprintf($$, "float %s = %f", $1->name, $3.value);
+                        } else {
+                            sprintf($$, "%s = %f", $1->name, $3.value);
+                        }
+                    }
+                } else {
+                    length += strlen($3.text);
+                    $$ = malloc(length);
+                    if($3.type == INTEGER_TYPE) {
+                        if(firstDeclaration) {
+                            sprintf($$, "int %s = %s", $1->name, $3.text);
+                        } else {
+                            sprintf($$, "%s = %s", $1->name, $3.text);
+                        }
+                    } else {
+                        if(firstDeclaration) {
+                            sprintf($$, "float %s = %s", $1->name, $3.text);
+                        } else {
+                            sprintf($$, "%s = %s", $1->name, $3.text);
+                        }
+                    }
+                }
+                printf("Value of non typed definition: %s\n", $$);
+            }
+        | ID ASSIGN QBIT_STR {;}
 
 NumericExpression :
   NumericExpression PLUS Term  {
@@ -263,7 +550,22 @@ NumericExpression :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value + $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                                $$.value = $1.value + $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value + (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            }
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 + strlen($3.text));
+                            sprintf($$.text, "%s + %s", $1.text, $3.text);
+                        }
                         }
   | NumericExpression MINUS Term  {
                         if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
@@ -271,8 +573,38 @@ NumericExpression :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value - $3.value;}
-  | Term  {$$.type = $1.type;$$.value = $1.value;}
+                        if($1.resolvable && $3.resolvable) {
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                                $$.value = $1.value - $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value - (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            }
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 + strlen($3.text));
+                            sprintf($$.text, "%s - %s", $1.text, $3.text);
+                        }
+                    }
+  | Term  {
+            $$.type = $1.type;
+            if($1.resolvable) {
+                $$.value = $1.value;
+								printf("\033[36m");
+                printf("Term value is: %f\n", $1.value);
+								printf("\033[37m");
+                $$.resolvable = 1;
+            } else {
+                $$.resolvable = 0;
+            }
+						printf("\033[36m");
+            printf("TERM type of: %d\n", $$.type);
+						printf("\033[37m");
+        }
   ;
 
 Term :
@@ -282,7 +614,22 @@ Term :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value * $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
+                                $$.value = $1.value * $3.value;
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            } else {
+                                $$.value = (int)$1.value * (int)$3.value;
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            }
+                            $$.resolvable = 1;
+                        } else {
+                            $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + 2*SPACE_LEN + 1 +strlen($3.text));
+                            sprintf($$.text, "%s * %s", $1.text, $3.text);
+                        }
                         }
   | Term DIVIDE  Unit {
                         if($1.type == FLOAT_TYPE || $3.type == FLOAT_TYPE) {
@@ -290,25 +637,84 @@ Term :
                         } else {
                             $$.type = INTEGER_TYPE;
                         }
-                        $$.value = $1.value / $3.value;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = $1.value / $3.value;
+                            $$.resolvable = 1;
+                            if($$.type == INTEGER_TYPE) {
+                                $$.text = malloc(num_of_digits((int)$$.value));
+                                sprintf($$.text, "%d", (int)$$.value);
+                            } else {
+                                $$.text = malloc(20);
+                                sprintf($$.text, "%f", $$.value);
+                            }
+                        } else {
+                            $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + strlen($3.text) + 1 + 2*SPACE_LEN);
+                            sprintf($$.text, "%s / %s", $1.text, $3.text);
+                        }
+                        printf("Divide expression was: %s\n", $$.text);
                       }
-  | Term MODULO  Unit {
-                        if($$.type != INTEGER_TYPE) {
+  | Term MODULO Unit {
+                        if($1.type != INTEGER_TYPE || $3.type != INTEGER_TYPE) {
                             perror("Type error when computing modular arithmetic\n");
                             exit(1);
                         }
-                        $$.value = (int)$1.value % (int)$3.value;
                         $$.type = INTEGER_TYPE;
+                        if($1.resolvable && $3.resolvable) {
+                            $$.value = (int)$1.value % (int)$3.value;
+                            $$.resolvable = 1;
+                            $$.text = malloc(num_of_digits((int)$$.value));
+                            sprintf($$.text, "%d", (int)$$.value);
+                        } else {
+                            $$.resolvable = 0;
+                            $$.text = malloc(strlen($1.text) + strlen($3.text) + 1 + 2*SPACE_LEN);
+                            sprintf($$.text, "%s %c %s", $1.text, '%', $3.text);
                         }
-  | Unit {$$.type = $1.type;$$ = $1;}
+                    }
+  | Unit {$$.type = $1.type;
+          if($1.resolvable) {
+            $$.value = $1.value;
+            $$.resolvable = 1;
+          } else {
+              $$.resolvable = 0;
+          }
+          $$.text = $1.text;
+					printf("\033[36m");
+          printf("UNIT type of: %d\n", $$.type);
+					printf("\033[37m");
+        }
   ;
 
 Unit :
-  ID  {;}             /*FIXME: decidir esto despues */
-  |	MINUS	Unit {$$.type = $2.type ;$$.value = -$2.value;}
-  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.value = $1.value;}
-  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.value = $1.value;}
-  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;$$.value = $2.value;}
+  ID  {$$.resolvable = 0;
+      $$.text = strdup($1->name);
+      sym * aux = symlook($1->name);
+      $$.type = aux->var_type;
+      $$.text = strdup($1->name);}             /*FIXME: decidir esto despues */
+  | MINUS Unit {
+      $$.type = $2.type;
+    $$.text = malloc(strlen($2.text) + 1);
+    sprintf($$.text, "-%s", $2.text);
+    if($2.resolvable) {
+        $$.value = -$2.value;
+        $$.resolvable = 1;
+    } else {
+        $$.resolvable = 0;
+        printf("La cosa queda: %s\n", $$.text);
+    }
+  }
+  | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(num_of_digits((int)$1.value)); sprintf($$.text ,"%d", (int)$1.value);}
+  | FLOAT_NUMBER  {$$.type = FLOAT_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(20); sprintf($$.text ,"%f", $1.value);}
+  | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS  {$$.type = $2.type;
+                                                            $$.text = malloc(strlen($2.text) + 2);
+                                                            sprintf($$.text, "(%s)", $2.text);
+                                                            if($2.resolvable) {
+                                                             $$.value = $2.value;
+                                                             $$.resolvable = 1;
+                                                            } else {
+                                                                $$.resolvable = 0;
+                                                            }
+                                                          }
   ;
 
 
@@ -343,13 +749,24 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 
 %%
 
-#define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\npublic class "
+#define HEAD_BEGINNING "import quantum.State;\nimport quantum.Qbit;\nimport quantum.gates.*;\n\nimport static java.lang.Boolean.FALSE;\nimport static java.lang.Boolean.TRUE;\n\npublic class "
 #define DEFAULT_OUTPUT_CLASS "Main"
 #define HEAD_END " {\n  public static void main(String[] args){\n"
 #define TAIL "  }\n}\n"
 
+void printVarTypes() {
+		printf("\033[34m");
+    printf("TYPE_UNDEF: %d\n", TYPE_UNDEF);
+    printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
+    printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
+    printf("TYPE_STRING: %d\n", TYPE_STRING);
+    printf("TYPE_REG: %d\n", TYPE_REG);
+		printf("\033[37m");
+}
+
 int main(int argc, char **argv)
 {
+    printVarTypes();
     init_parser();
 	char* head;
 	char* tail = TAIL;
@@ -446,12 +863,12 @@ int num_of_digits(int n){
 		aux /= 10;
 		result++;
 	}
-	return result;
+	return result + (n<0?1:0);
 }
 
 void exit_program_if_variable_was_declared(char * id){
     if(is_declared(id)){
-        yyerror("Error: variable already declared!\n");
+        yyerror("Symbol already in use\n");
         exit(1);
     }
 }

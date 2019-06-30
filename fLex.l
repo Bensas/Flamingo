@@ -1,8 +1,8 @@
 %{
 	#include <stdio.h>
 	#include <stdlib.h>
-	#include "y.tab.h"
 	#include "parser.h"
+	#include "y.tab.h"
 %}
 
 
@@ -49,6 +49,8 @@ qbitString     \|[01]+>
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 "exit"			{ return EXIT;}
+"TRUE"			{	return TRUE;}
+"FALSE"			{	return FALSE;}
 {integer}       { yylval.number.value = atof(yytext); return INTEGER_NUMBER; }
 {float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
 {variableName}  { yylval.id = symlook(yytext); return ID; }
