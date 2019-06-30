@@ -7,7 +7,7 @@
 typedef void * any_t;
 typedef enum { UNDEF_TYPE = 0, INTEGER_TYPE, FLOAT_TYPE, STRING_TYPE, REG_TYPE } var_type_t;
 
-//typedef enum { OP_GREATER, OP_GREATER_EQ, OP_LESSER, OP_LESSER_EQ, OP_EQUALS, OP_NOT_EQ } op_t;
+//typedef enum { OP_GREATER, OP_GREATER_EQ, OP_LESSER, OP_LESSER_EQ, OP_EQUALS } op_t;
 
 typedef struct sym
 {

@@ -284,7 +284,7 @@ BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {
 		}
     ;
 
-RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
+RelationalExp : NumericExpression  SMALLER_OR_EQ NumericExpression {
 				$$.value = ($1.value <= $3.value)?1:0;
 				int len;
 				if($1.resolvable == 0 || $3.resolvable == 0){
