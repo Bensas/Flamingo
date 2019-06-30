@@ -233,7 +233,7 @@ RelationalTerm : Unit { int len = strlen($1.text)+3;
         | ID {  
             exit_if_variable_was_not_declared($1->name);
             if($1->var_type==INTEGER_TYPE || $1->var_type==FLOAT_TYPE){
-                    int len = $1->name+3; 
+                    int len = strlen($1->name)+3; 
 	 	            $$ = malloc(len);
 	 	            snprintf($$,len,"%s",$1->name);
             } 
