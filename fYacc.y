@@ -503,8 +503,10 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-                int firstDeclaration = 0;
+                int firstDeclaration = FALSE;
+               
                 if(is_declared($1->name)) {
+                    
                     //Type verifications
                     if($1->var_type != $3.type) {
                         perror("Error while defining");
@@ -512,16 +514,17 @@ Definition : ID ASSIGN NumericExpression {
                     }
                 } else {
                     store_new_symbol($1->name, $1);
-                    update_key_type($1->name, $3.type);
-                    firstDeclaration = 1;
+                    firstDeclaration = TRUE;
                 }
-                int length = 0;
-                length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
+
+                int length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
+                
                 if($3.type == INTEGER_TYPE) {
                     length += INTEGER_LENGTH + 1;
                 } else {
                     length += FLOAT_LENGTH + 1;
                 }
+                
                 if($3.resolvable) {
                     length += num_of_digits($3.value);
                     $$ = malloc(length);

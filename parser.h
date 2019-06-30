@@ -4,6 +4,9 @@
 #define UNDECLARED 0
 #define DECLARED 1
 
+#define FALSE 0
+#define TRUE 1
+
 typedef void * any_t;
 typedef enum { TYPE_UNDEF = 0, INTEGER_TYPE, FLOAT_TYPE, TYPE_STRING, TYPE_REG } var_type_t;
 
