@@ -530,6 +530,7 @@ Definition : ID ASSIGN NumericExpression {
                     }
                 } else {
                     store_new_symbol($1->name, $1);
+                    update_key_type($1->name, $3.type);
                     firstDeclaration = 1; // True
                 }
 
@@ -814,13 +815,13 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
 #define TAIL 
 
 void printVarTypes() {
-		printf("\033[34m");
+	printf("\033[34m");
     printf("UNDEF_TYPE: %d\n", UNDEF_TYPE);
     printf("INTEGER_TYPE: %d\n", INTEGER_TYPE);
     printf("FLOAT_TYPE: %d\n", FLOAT_TYPE);
     printf("STRING_TYPE: %d\n", STRING_TYPE);
     printf("REG_TYPE: %d\n", REG_TYPE);
-		printf("\033[37m");
+	printf("\033[37m");
 }
 
 int main(int argc, char **argv)
