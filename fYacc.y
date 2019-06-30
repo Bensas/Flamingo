@@ -707,15 +707,15 @@ int main(int argc, char **argv)
 	}
 
 	fputs(head, yyout);
-	yyparse();
+	int parsing_done=!yyparse();
 	fputs("  }\n}\n", yyout);
 
-	// if(!parsing_done)
-	// {
-	//   warning("Premature EOF",(char *)0);
-	//   unlink(outputFile);
-	//   exit(1);
-	// }
+	if(!parsing_done)
+	{
+	   yyerror("Parsing incomplete. Premature EOF");
+	   remove(outputFile);
+	   exit(1);
+	}
 	fclose(yyout);
 	system(compileCommand);
 	system(runCommand);
