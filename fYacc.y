@@ -23,6 +23,8 @@ int yywrap()
 #define SPACE_LEN 1
 #define NUMBER_LENGTH 15
 #define STATE_LEN 6
+#define IF_STATEMENT_LENGTH 7
+#define IF_ELSE_STATEMENT_LENGTH 14
 %}
 
 %union {
@@ -86,7 +88,7 @@ int yywrap()
 
 %type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement Function
+%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement IfStatement Function
 
 %%
 
@@ -135,9 +137,21 @@ Statement : Declaration END {
       }
     ;
 
-IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET {;}
-            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE OPEN_BRACKET Program CLOSE_BRACKET {;}
-            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Program CLOSE_BRACKET ELSE IfStatement {;}
+IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
+                    int length = IF_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + 1;
+                    $$ = malloc(length);
+                    snprintf($$, length, "if (%s){%s}", $3.text, $6);
+            }
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE OPEN_BRACKET Function CLOSE_BRACKET {
+                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + strlen($10) + 1;
+                    $$ = malloc(length);
+                    snprintf($$, length, "if (%s){%s} else {%s}", $3.text, $6, $10);
+            }
+            | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE IfStatement {
+                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + strlen($9) + 1;
+                    $$ = malloc(length);
+                    snprintf($$, length, "if (%s){%s} else %s", $3.text, $6, $9);
+            }
     ;
 
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
@@ -723,25 +737,25 @@ GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0)
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
 			int len;
       if (strcmp($1, "ID") != 0){
-		  len = 4 +
+		  len = strlen($3->name) +
           		((strcmp($1, "H") == 0) ? 37 : (strcmp($1, "CNOT") == 0) ? 35 : 36) +
           		num_of_digits((int)$4.value);
           $$ = malloc(len);
 
           if (strcmp($1, "H") == 0){
-              snprintf($$,len, "%s.applyGateToQbit(%d, new Hadamard2d())", "hola", (int)$4.value);
+              snprintf($$,len, "%s.applyGateToQbit(%d, new Hadamard2d())", $3->name, (int)$4.value);
               break;
           } else if (strcmp($1, "X") == 0){
-              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliX2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliX2D())", $3->name, (int)$4.value);
               break;
           } else if (strcmp($1, "Y") == 0){
-              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliY2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliY2D())", $3->name, (int)$4.value);
               break;
           } else if (strcmp($1, "Z") == 0){
-              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliZ2D())", "hola", (int)$4.value);
+              snprintf($$, len, "%s.applyGateToQbit(%d, new PauliZ2D())", $3->name, (int)$4.value);
               break;
           } else if (strcmp($1, "CNOT") == 0){
-              snprintf($$, len, "%s.applyGateToQbits(%d, %d, new CNOT())", "hola", (int)$4.value, (int)$4.value+1);
+              snprintf($$, len, "%s.applyGateToQbits(%d, %d, new CNOT())", $3->name, (int)$4.value, (int)$4.value+1);
           }
       }
   }
