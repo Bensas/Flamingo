@@ -14,10 +14,15 @@ float          [0-9]+\.[0-9]+
 variableName   [a-zA-Z]+
 gate           (X|Y|Z|H|CNOT|ID)
 qbitString     \|[01]+>
+comment 	   \/\/.*\n
 
 %%
+{comment}		{}
+"!"				{ return NOT; }
 "&&"			{ return AND; }
 "||"			{ return OR; }
+"<"				{ return SMALLER_THAN; }
+">"				{ return GREATER_THAN; }
 "<="			{ return SMALLER_OR_EQ; }
 ">="			{ return GREATER_OR_EQ; }
 "=="			{ return EQ; }
@@ -29,14 +34,11 @@ qbitString     \|[01]+>
 "("				{ return OPEN_PARENTHESIS; }
 ")"				{ return CLOSE_PARENTHESIS; }
 "|"             { return PIPE; }
-"!"				{ return NOT; }
 "-"				{ return MINUS; }
 "+"				{ return PLUS; }
 "/"				{ return DIVIDE; }
 "*"				{ return MULTIPLY; }
 "%"				{ return MODULO; }
-"<"				{ return SMALLER_THAN; }
-">"				{ return GREATER_THAN; }
 {gate}			{ yylval.gate = strdup(yytext); return GATE;}
 "M"             { return MEASURE; }
 "if"            { return IF; }
@@ -49,6 +51,8 @@ qbitString     \|[01]+>
 "String"		{ return DECL_STRING; }
 "Reg"			{ return DECL_REGISTER; }
 "exit"			{ return EXIT;}
+"TRUE"			{	return TRUE;}
+"FALSE"			{	return FALSE;}
 {integer}       { yylval.number.value = atof(yytext); return INTEGER_NUMBER; }
 {float}         { yylval.number.value = atof(yytext); return FLOAT_NUMBER; }
 {variableName}  { yylval.id = symlook(yytext); return ID; }
