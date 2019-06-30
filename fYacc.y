@@ -491,11 +491,6 @@ Declaration : DECL_INT ID {
             int len = 6 + strlen($2->name) + 27 + strlen(qbitInitializations);
             $$ = malloc(len);
             snprintf($$,len,"State %s = new State(new Qbit[]{%s})",$2->name, qbitInitializations);
-            printf("Acabo de escribir:\n");
-            printf("State %s = new State(new Qbit[]{%s})\n",$2->name, qbitInitializations);
-
-            printf("Definitooon\n");		//FIXME remove this when this joke gets old
-
             free(qbitInitializations);
         }
         | Definition {$$ = $1; printf("Value of Decl: %s\n", $$);}
@@ -556,7 +551,22 @@ Definition : ID ASSIGN NumericExpression {
                 }
                 printf("Value of non typed definition: %s\n", $$);
             }
-        | ID ASSIGN QBIT_STR {;}
+        | ID ASSIGN QBIT_STR {
+        	char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
+
+            for(int i = 1 ; i < strlen($3)-1 ; i++){
+                if ($3[i] == '0')
+                    strcat(qbitInitializations, "new Qbit(1, 0)");
+                else if ($3[i] == '1')
+                    strcat(qbitInitializations, "new Qbit(0, 1)");
+                if (i != strlen($3) - 2)
+                    strcat(qbitInitializations, ",");
+            }
+            int len = strlen($1->name) + 27 + strlen(qbitInitializations);
+            $$ = malloc(len);
+            snprintf($$,len,"%s = new State(new Qbit[]{%s})",$1->name, qbitInitializations);
+            free(qbitInitializations);
+        }
 
 NumericExpression :
   NumericExpression PLUS Term  {
@@ -817,7 +827,7 @@ int main(int argc, char **argv)
 		yyin = fopen(inputFile,"r");
 		if(yyin == NULL)
 		{
-			printf("Failed to open %s!", inputFile);
+			printf("Failed to open %s!\n", inputFile);
 			exit(1);
 		}
 	}
