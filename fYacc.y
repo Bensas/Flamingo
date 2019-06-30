@@ -122,19 +122,24 @@ Statement : Declaration END {
     | IfStatement {;}
     | WhileStatement {
 			int len = strlen($1) + 1;
-    	$$ = malloc(len);
-        snprintf($$,len, "%s;", $1);
+    	    $$ = malloc(len);
+            snprintf($$,len, "%s;", $1);
 		}
     | PrintStatement END {
 			int len = strlen($1) + 2;
-    	$$ = malloc(len);
-        snprintf($$,len, "%s;", $1);
+    	    $$ = malloc(len);
+            snprintf($$,len, "%s;", $1);
     	}
     | GateApply END {
-			int len = strlen($1) + 2;
+			int len = strlen($1) + 2; // Why is it sometimes 2 and other 1 ? Makes more sense 1 for ; but I dont know
 			$$ = malloc(len);
-    	snprintf($$,len, "%s;", $1);
-      }
+    	    snprintf($$,len, "%s;", $1);
+        }
+    | RelationalExp END {
+            //int len = strlen($1.text) + 1;
+			//$$ = malloc(len);
+    	    //snprintf($$,len, "%s;", $1);
+        }
     ;
 
 IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
@@ -169,7 +174,6 @@ PrintStatement : PRINT STRING {
 		snprintf($$,len, "System.out.println(%s)", $2);
 	}
 	| PRINT ID {
-		//This code will work once we have a structure for variables so we can typecheck
 		if ($2->var_type == REG_TYPE){
 			int len = strlen($2->name) + 21;
 			$$ = malloc(len);
@@ -305,7 +309,7 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
 					len = strlen($1.text) + 4 + strlen($3.text)+1;
 					$$.text = malloc(len);
 					snprintf($$.text,len,"%s >= %s",$1.text,$3.text);
-				}else{
+                }else{
 					$$.resolvable = 1;
 					if($$.value == 1){
 						len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
@@ -385,7 +389,6 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
     | STRING EQ STRING {
             int len = strlen($1) + strlen($3) + 18; // 18 for Objects.equals( , )
 			$$.text = malloc(len);
-            printf("Objects.equals(%s, %s);\n", $1, $3);
 			snprintf($$.text, len, "Objects.equals(%s, %s);", $1, $3);
 	    }
     ;
