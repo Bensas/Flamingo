@@ -235,7 +235,7 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-
+            
             printf("Decl int queda: %s\n", $$);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
@@ -250,7 +250,7 @@ Declaration : DECL_INT ID {
             }
             store_new_symbol($2->name, $2);
             update_key_type($2->name, FLOAT_TYPE);
-            printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
+            // printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
             $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
             sprintf($$, "float %s = %s", $2->name, $4.text);
             printf("Decl float queda: %s\n", $$);
@@ -395,12 +395,12 @@ NumericExpression :
             $$.type = $1.type;
             if($1.resolvable) {
                 $$.value = $1.value;
-                printf("Term value is: %f\n", $1.value);
+                // printf("Term value is: %f\n", $1.value);
                 $$.resolvable = 1;
             } else {
                 $$.resolvable = 0;
             }
-            printf("TERM type of: %d\n", $$.type);
+            // printf("TERM type of: %d\n", $$.type);
         }
   ;
 
@@ -476,7 +476,7 @@ Term :
               $$.resolvable = 0;
           }
           $$.text = $1.text;
-          printf("UNIT type of: %d\n", $$.type);
+        //   printf("UNIT type of: %d\n", $$.type);
         }
   ;
 
