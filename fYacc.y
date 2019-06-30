@@ -487,6 +487,9 @@ Declaration : DECL_INT ID {
         | DECL_REGISTER ID ASSIGN QBIT_STR {
             exit_program_if_variable_was_declared($2->name);
 
+            store_new_symbol($2->name, $2);
+            update_key_type($2->name, REG_TYPE);
+
             char* qbitInitializations = malloc((strlen($4)-2) * 15 - 1);
 
             for(int i = 1 ; i < strlen($4)-1 ; i++){
@@ -506,7 +509,7 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-                int firstDeclaration = FALSE;
+                int firstDeclaration = 0; // False
                
                 if(is_declared($1->name)) {
                     
@@ -517,7 +520,7 @@ Definition : ID ASSIGN NumericExpression {
                     }
                 } else {
                     store_new_symbol($1->name, $1);
-                    firstDeclaration = TRUE;
+                    firstDeclaration = 1; // True
                 }
 
                 int length = strlen($1->name) + SPACE_LEN + 1 + SPACE_LEN;
