@@ -315,55 +315,55 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
 				}
 			}
     | NumericExpression EQ NumericExpression {
-			$$.value = ($1.value == $3.value)?1:0;
-			int len;
-			if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-					len = strlen($1.text) + 4 + strlen($3.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s == %s",$1.text,$3.text);
-			}else{
-				$$.resolvable = 1;
-				if($$.value == 1){
-					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-				}else{
-					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-				}
-			}
+                $$.value = ($1.value == $3.value)?1:0;
+                int len;
+                if($1.resolvable == 0 || $3.resolvable == 0){
+                    $$.resolvable = 0;
+                        len = strlen($1.text) + 4 + strlen($3.text)+1;
+                        $$.text = malloc(len);
+                        snprintf($$.text,len,"%s == %s",$1.text,$3.text);
+                }else{
+                    $$.resolvable = 1;
+                    if($$.value == 1){
+                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+                    }else{
+                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+                    }
+                }
 			}
     | NumericExpression NOT_EQ NumericExpression {
-			$$.value = ($1.value != $3.value)?1:0;
-			int len;
-			if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-					len = strlen($1.text) + 4 + strlen($3.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s != %s",$1.text,$3.text);
-			}else{
-				$$.resolvable = 1;
-				if($$.value == 1){
-					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-				}else{
-					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-				}
-			}
+                $$.value = ($1.value != $3.value)?1:0;
+                int len;
+                if($1.resolvable == 0 || $3.resolvable == 0){
+                    $$.resolvable = 0;
+                        len = strlen($1.text) + 4 + strlen($3.text)+1;
+                        $$.text = malloc(len);
+                        snprintf($$.text,len,"%s != %s",$1.text,$3.text);
+                }else{
+                    $$.resolvable = 1;
+                    if($$.value == 1){
+                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+                    }else{
+                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+                    }
+                }
 			}
     | NumericExpression GREATER_THAN NumericExpression {
-			$$.value = ($1.value > $3.value)?1:0;
-			int len;
-			if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-					len = strlen($1.text) + 3 + strlen($3.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s > %s",$1.text,$3.text);
-			}else{
-				$$.resolvable = 1;
-				if($$.value == 1){
-					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-				}else{
-					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-				}
-			}
+                $$.value = ($1.value > $3.value)?1:0;
+                int len;
+                if($1.resolvable == 0 || $3.resolvable == 0){
+                    $$.resolvable = 0;
+                        len = strlen($1.text) + 3 + strlen($3.text)+1;
+                        $$.text = malloc(len);
+                        snprintf($$.text,len,"%s > %s",$1.text,$3.text);
+                }else{
+                    $$.resolvable = 1;
+                    if($$.value == 1){
+                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
+                    }else{
+                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
+                    }
+                }
 			}
     | NumericExpression SMALLER_THAN NumericExpression {
 			$$.value = ($1.value < $3.value)?1:0;
@@ -382,6 +382,12 @@ RelationalExp : NumericExpression SMALLER_OR_EQ NumericExpression {
 				}
 			}
 		}
+    | STRING EQ STRING {
+            int len = strlen($1) + strlen($3) + 18; // 18 for Objects.equals( , )
+			$$.text = malloc(len);
+            printf("Objects.equals(%s, %s);\n", $1, $3);
+			snprintf($$.text, len, "Objects.equals(%s, %s);", $1, $3);
+	    }
     ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
