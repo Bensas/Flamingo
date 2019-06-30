@@ -98,7 +98,7 @@ int yywrap()
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
 Program : Function {
-         fputs($1, yyout);
+        fputs($1, yyout);
         }
 		| EXIT END	{;}
     ;
@@ -653,7 +653,7 @@ NumericExpression :
             $$.type = $1.type;
             if($1.resolvable) {
                 $$.value = $1.value;
-								printf("\033[36m");
+				printf("\033[36m");
                 printf("Term value is: %f\n", $1.value);
 								printf("\033[37m");
                 $$.resolvable = 1;
