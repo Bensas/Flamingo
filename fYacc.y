@@ -86,10 +86,13 @@ int yywrap()
 
 /* Primeras definiciones: un programa es un conjunto de definiciones (declaracion + asignacion)*/
 
-Program : Function {
-        fputs($1, yyout);
+Program : Function EXIT END{
+            fputs($1, yyout);
+            exit(0);
         }
-		| EXIT END	{;}
+		| EXIT END	{
+            exit(0);
+        }
     ;
 
 Function : Statement {
