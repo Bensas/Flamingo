@@ -265,7 +265,6 @@ Declaration : DECL_INT ID {
 
             $$ = malloc(len);
         	snprintf($$,len + 1, "int %s", $2->name);
-            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_FLOAT ID {
             exit_program_if_variable_was_declared($2->name);
@@ -277,7 +276,6 @@ Declaration : DECL_INT ID {
 
             $$ = malloc(len);
         	snprintf($$,len + 1, "float %s", $2->name);
-            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_STRING ID {
             exit_program_if_variable_was_declared($2->name);
@@ -289,7 +287,6 @@ Declaration : DECL_INT ID {
 
             $$ = malloc(len);
         	snprintf($$,len + 1, "String %s", $2->name);
-            printf("Fue una declaracion\n");
         }
         | DECL_REGISTER ID {
             exit_program_if_variable_was_declared($2->name);
@@ -301,7 +298,6 @@ Declaration : DECL_INT ID {
             update_key_type($2->name, REG_TYPE);
 
         	snprintf($$,len + 1, "State %s", $2->name);
-            printf("Fue una declaracion: %s\n", $$);
         }
         | DECL_INT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -318,8 +314,6 @@ Declaration : DECL_INT ID {
                 perror("Error: Float to Int\n");
                 exit(1);
             }
-            
-            printf("Decl int queda: %s\n", $$);
         }
         | DECL_FLOAT ID ASSIGN NumericExpression {
             exit_program_if_variable_was_declared($2->name);
@@ -334,10 +328,8 @@ Declaration : DECL_INT ID {
             }
             store_new_symbol($2->name, $2);
             update_key_type($2->name, FLOAT_TYPE);
-            // printf("Defined a float variable: %s, value of %f, type of %d\n", $2->name, $4.value, symlook($2->name)->var_type);
             $$ = malloc(FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text));
             sprintf($$, "float %s = %s", $2->name, $4.text);
-            printf("Decl float queda: %s\n", $$);
         }
         | DECL_STRING ID ASSIGN STRING {
             exit_program_if_variable_was_declared($2->name);
@@ -350,8 +342,6 @@ Declaration : DECL_INT ID {
             $$ = malloc(len);
             $$[len] = '\0';
             snprintf($$,len+1, "String %s%c%s", $2->name, '=', $4);
-            printf("Defined a string variable %s, value of %s\n", $$, $4);
-            printf("Definicion de string queda: %s\n", $$);
         }
         | DECL_REGISTER ID ASSIGN QBIT_STR {
             exit_program_if_variable_was_declared($2->name);
@@ -374,7 +364,7 @@ Declaration : DECL_INT ID {
             snprintf($$,len,"State %s = new State(new Qbit[]{%s})",$2->name, qbitInitializations);
             free(qbitInitializations);
         }
-        | Definition {$$ = $1; printf("Value of Decl: %s\n", $$);}
+        | Definition {$$ = $1;}
         ;
 
 Definition : ID ASSIGN NumericExpression {
@@ -388,7 +378,6 @@ Definition : ID ASSIGN NumericExpression {
                         exit(1);
                     }
                 } else {
-                    printf("Declaring the variable %s in Definition\n", $1->name);
                     store_new_symbol($1->name, $1);
                     update_key_type($1->name, $3.type);
                     firstDeclaration = 1; // True
@@ -435,7 +424,6 @@ Definition : ID ASSIGN NumericExpression {
                         }
                     }
                 }
-                printf("Value of non typed definition: %s\n", $$);
             }
         | ID ASSIGN QBIT_STR {
         	char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
@@ -514,16 +502,10 @@ NumericExpression :
             $$.type = $1.type;
             if($1.resolvable) {
                 $$.value = $1.value;
-				printf("\033[36m");
-                printf("Term value is: %f\n", $1.value);
-								printf("\033[37m");
                 $$.resolvable = 1;
             } else {
                 $$.resolvable = 0;
             }
-						printf("\033[36m");
-            printf("TERM type of: %d\n", $$.type);
-						printf("\033[37m");
         }
   ;
 
@@ -572,7 +554,6 @@ Term :
                             $$.text = malloc(strlen($1.text) + strlen($3.text) + 1 + 2*SPACE_LEN);
                             sprintf($$.text, "%s / %s", $1.text, $3.text);
                         }
-                        printf("Divide expression was: %s\n", $$.text);
                       }
   | Term MODULO Unit {
                         if($1.type != INTEGER_TYPE || $3.type != INTEGER_TYPE) {
@@ -599,9 +580,6 @@ Term :
               $$.resolvable = 0;
           }
           $$.text = $1.text;
-			//printf("\033[36m");
-          printf("UNIT type of: %d\n", $$.type);
-			//printf("\033[37m");
         }
   ;
 
@@ -624,7 +602,6 @@ Unit :
         $$.resolvable = 1;
     } else {
         $$.resolvable = 0;
-        printf("La cosa queda: %s\n", $$.text);
     }
   }
   | INTEGER_NUMBER  {$$.type = INTEGER_TYPE; $$.resolvable = 1; $$.value = $1.value; $$.text = malloc(num_of_digits((int)$1.value)); sprintf($$.text ,"%d", (int)$1.value);}
