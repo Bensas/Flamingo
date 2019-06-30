@@ -529,6 +529,7 @@ Definition : ID ASSIGN NumericExpression {
                         exit(1);
                     }
                 } else {
+                    printf("Declaring the variable %s in Definition\n", $1->name);
                     store_new_symbol($1->name, $1);
                     update_key_type($1->name, $3.type);
                     firstDeclaration = 1; // True
@@ -746,7 +747,11 @@ Term :
   ;
 
 Unit :
-  ID  {$$.resolvable = 0;
+  ID  {
+      if( ! is_declared($1->name)) {
+          yyerror("Undeclared symbol used in expression\n");
+      }
+      $$.resolvable = 0;
       $$.text = strdup($1->name);
       sym * aux = symlook($1->name);
       $$.type = aux->var_type;
