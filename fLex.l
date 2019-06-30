@@ -18,15 +18,14 @@ comment 	   \/\/.*\n
 
 %%
 {comment}		{}
-"!"				{ return NOT; }
-"&&"			{ return AND; }
-"||"			{ return OR; }
-"<"				{ return SMALLER_THAN; }
-">"				{ return GREATER_THAN; }
-"<="			{ return SMALLER_OR_EQ; }
-">="			{ return GREATER_OR_EQ; }
-"=="			{ return EQ; }
-"!="			{ return NOT_EQ; }
+"!"				{ yylval.string = strdup(yytext); return SINGLE_TERM_OP; }
+"&&"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
+"||"			{ yylval.string = strdup(yytext); return DOUBLE_TERM_OP; }
+"<"				{ yylval.string = strdup(yytext); return RELATIONAL_OP; }
+">"				{ yylval.string = strdup(yytext); return RELATIONAL_OP; }
+"<="			{ yylval.string = strdup(yytext); return RELATIONAL_OP; }
+">="			{ yylval.string = strdup(yytext); return RELATIONAL_OP; }
+"=="			{ yylval.string = strdup(yytext); return RELATIONAL_OP; }
 ("{")			{ return OPEN_BRACKET; }
 ("}")			{ return CLOSE_BRACKET; }
 ";"             { return END; }

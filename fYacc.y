@@ -57,15 +57,9 @@ int yywrap()
 %token DECL_STRING
 %token DECL_REGISTER
 %token ASSIGN
-%token AND
-%token OR
-%token NOT
-%token SMALLER_OR_EQ
-%token GREATER_OR_EQ
-%token GREATER_THAN
-%token SMALLER_THAN
-%token EQ
-%token NOT_EQ
+%token <string> SINGLE_TERM_OP
+%token <string> DOUBLE_TERM_OP
+%token <string> RELATIONAL_OP
 %token <string> EXIT
 %token IF
 %token ELSE
@@ -87,9 +81,9 @@ int yywrap()
 %token MEASURE
 %token <string> QBIT_STR
 
-%type <boolean> BoolExp BoolExpOr BoolVal RelationalExp
+
 %type <number> NumericExpression Term Unit
-%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement IfStatement Function
+%type <string> GateApply Statement Declaration Definition PrintStatement WhileStatement IfStatement Function BoolTerm BoolExp BoolRelationalTerm RelationalTerm
 
 %%
 
@@ -136,36 +130,36 @@ Statement : Declaration END {
 			$$ = malloc(len);
     	    snprintf($$,len, "%s;", $1);
         }
-    | RelationalExp END {
-            //int len = strlen($1.text) + 1;
-			//$$ = malloc(len);
-    	    //snprintf($$,len, "%s;", $1);
+    | BoolExp END { 
+            int len = strlen($1) + 10;
+    	    $$ = malloc(len);
+            snprintf($$,len, "%s;", $1);
         }
     ;
 
 IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
-                    int length = IF_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + 1;
+                    int length = IF_STATEMENT_LENGTH + strlen($3) + strlen($6) + 1;
                     $$ = malloc(length);
-                    snprintf($$, length, "if (%s){%s}", $3.text, $6);
+                    snprintf($$, length, "if (%s){%s}", $3, $6);
             }
             | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE OPEN_BRACKET Function CLOSE_BRACKET {
-                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + strlen($10) + 1;
+                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3) + strlen($6) + strlen($10) + 1;
                     $$ = malloc(length);
-                    snprintf($$, length, "if (%s){%s} else {%s}", $3.text, $6, $10);
+                    snprintf($$, length, "if (%s){%s} else {%s}", $3, $6, $10);
             }
             | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE IfStatement {
-                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3.text) + strlen($6) + strlen($9) + 1;
+                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3) + strlen($6) + strlen($9) + 1;
                     $$ = malloc(length);
-                    snprintf($$, length, "if (%s){%s} else %s", $3.text, $6, $9);
+                    snprintf($$, length, "if (%s){%s} else %s", $3, $6, $9);
             }
     ;
 
 WhileStatement : WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET {
 
-			int len = 7 + strlen($3.text) + 4 + strlen($6) + 2 +1;
+			int len = 7 + strlen($3) + 4 + strlen($6) + 2 +1;
 			$$ = malloc(len);
 
-			snprintf($$,len,"while( %s ){\n%s\n}",$3.text,$6);
+			snprintf($$,len,"while( %s ){\n%s\n}",$3,$6);
 			}
     ;
 
@@ -187,212 +181,77 @@ PrintStatement : PRINT STRING {
 		;}
 	;
 
-BoolExp : BoolExp AND BoolExpOr {
-		$$.value = $1.value && $3.value;
-		int len = 2;
-		if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-				len = strlen($1.text) + 4 + strlen($3.text)+1;
-				$$.text = malloc(len);
-				snprintf($$.text,len,"%s && %s",$1.text,$3.text);
-		}else{
-			$$.resolvable = 1;
-			if($$.value == 1){
-				$$.text=malloc(5); snprintf($$.text,5,"TRUE");
-			}else{
-				$$.text=malloc(6); snprintf($$.text,6,"FALSE");
-			}
-		}
-		}
-	| BoolExpOr {
-		$$.value = $1.value;
-		$$.resolvable = $1.resolvable;
-		int len = strlen($1.text)+1;
-		$$.text = malloc(len);
-		snprintf($$.text,len,"%s",$1.text);
-	}
-	;
+BoolExp : SINGLE_TERM_OP BoolExp { 
+            int len=2+strlen($2)+3;
+            $$=malloc(len);
+            snprintf($$,len,"%s%s",$1,$2);
+        }
+        | BoolExp DOUBLE_TERM_OP BoolExp { 
+                int len=2+strlen($1)+strlen($3)+3;
+                $$=malloc(len);
+                snprintf($$,len,"%s%s%s",$1,$2,$3);
+            } 
+        | SINGLE_TERM_OP BoolTerm { 
+                int len=2+strlen($2)+3;
+                $$=malloc(len);
+                snprintf($$,len,"%s%s",$1,$2);
+            }
+        | BoolTerm DOUBLE_TERM_OP BoolTerm { 
+                int len=2+strlen($1)+strlen($3)+3;
+                $$=malloc(len);
+                snprintf($$,len,"%s%s%s",$1,$2,$3);
+            }
+        | OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {
+            int len=2+strlen($2)+3;
+            $$=malloc(len);
+            snprintf($$,len,"(%s)",$2);
+        }
+        | BoolTerm {;}
+        | BoolRelationalTerm {;}
+        
+BoolRelationalTerm : RelationalTerm RELATIONAL_OP RelationalTerm {
+            int len=2+strlen($1)+strlen($3)+3;
+            $$=malloc(len);
+            snprintf($$,len,"%s%s%s",$1,$2,$3);
+        }
+        | BoolRelationalTerm RELATIONAL_OP BoolRelationalTerm {
+            int len=2+strlen($1)+strlen($3)+3;
+            $$=malloc(len);
+            snprintf($$,len,"%s%s%s",$1,$2,$3);
+        }
+        | OPEN_PARENTHESIS BoolRelationalTerm CLOSE_PARENTHESIS {
+            int len=2+strlen($2)+3;
+            $$=malloc(len);
+            snprintf($$,len,"(%s)",$2);
+        }
+        | RelationalTerm {;}
+        ;
 
-BoolExpOr : BoolExpOr OR BoolVal {
-		$$.value = $1.value || $3.value;
-		int len = 2;
-		if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-				len = strlen($1.text) + 4 + strlen($3.text)+1;
-				$$.text = malloc(len);
-				snprintf($$.text,len,"%s || %s",$1.text,$3.text);
-		}else{
-			$$.resolvable = 1;
-			if($$.value == 1){
-				$$.text=malloc(5); snprintf($$.text,5,"TRUE");
-			}else{
-				$$.text=malloc(6); snprintf($$.text,6,"FALSE");
-			}
-		}
-		}
-	| BoolVal {
-		$$.value = $1.value;
-		$$.resolvable = $1.resolvable;
-		int len = strlen($1.text)+1;
-		$$.text = malloc(len);
-		snprintf($$.text,len,"%s",$1.text);
-		}
-	;
-
-BoolVal : OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS {
-			$$.value = $2.value;$$.resolvable = $2.resolvable;
-				if($2.resolvable == 0){
-					int len = 2+strlen($2.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"(%s)",$2.text);
-				}else{
-					if($$.value == 1){
-						$$.text=malloc(5); snprintf($$.text,5,"TRUE");
-					}else{
-						$$.text=malloc(6); snprintf($$.text,6,"FALSE");
-					}
-				}
-		}
-    | NOT BoolVal {
-			$$.value = 1 - $2.value; $$.resolvable = $2.resolvable;
-			if($2.resolvable == 0){
-					int len = 1+strlen($2.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"!%s",$2.text);
-			}else{
-				if($$.value == 1){
-					$$.text=malloc(5); snprintf($$.text,5,"TRUE");
-				}else{
-					$$.text=malloc(6); snprintf($$.text,6,"FALSE");
-				}
-			}
-			}
-    | TRUE {$$.value = 1;	$$.resolvable=1; $$.text=malloc(5); snprintf($$.text,5,"TRUE");}
-    | FALSE {$$.value = 0;	$$.resolvable=1; $$.text=malloc(6); snprintf($$.text,6,"FALSE");}
-    | RelationalExp {
-			$$.value = $1.value;	$$.resolvable = $1.resolvable;
-			if($1.resolvable == 0){
-					int len = strlen($1.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s",$1.text);
-			}else{
-				if($$.value == 1){
-					$$.text=malloc(5); snprintf($$.text,5,"TRUE");
-				}else{
-					$$.text=malloc(6); snprintf($$.text,6,"FALSE");
-				}
-			}
-		}
-    ;
-
-RelationalExp : NumericExpression  SMALLER_OR_EQ NumericExpression {
-				$$.value = ($1.value <= $3.value)?1:0;
-				int len;
-				if($1.resolvable == 0 || $3.resolvable == 0){
-						$$.resolvable = 0;
-						len = strlen($1.text) + 4 + strlen($3.text)+1;
-						$$.text = malloc(len);
-						snprintf($$.text,len,"%s <= %s",$1.text,$3.text);
-				}else{
-					$$.resolvable = 1;
-					if($$.value == 1){
-						len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-					}else{
-						len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-					}
-				}
-			}
-    | NumericExpression GREATER_OR_EQ NumericExpression {
-				$$.value = ($1.value >= $3.value)?1:0;
-				int len;
-				if($1.resolvable == 0 || $3.resolvable == 0){
-					$$.resolvable = 0;
-					len = strlen($1.text) + 4 + strlen($3.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s >= %s",$1.text,$3.text);
-                }else{
-					$$.resolvable = 1;
-					if($$.value == 1){
-						len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-					}else{
-						len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-					}
-				}
-			}
-    | NumericExpression EQ NumericExpression {
-                $$.value = ($1.value == $3.value)?1:0;
-                int len;
-                if($1.resolvable == 0 || $3.resolvable == 0){
-                    $$.resolvable = 0;
-                        len = strlen($1.text) + 4 + strlen($3.text)+1;
-                        $$.text = malloc(len);
-                        snprintf($$.text,len,"%s == %s",$1.text,$3.text);
-                }else{
-                    $$.resolvable = 1;
-                    if($$.value == 1){
-                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-                    }else{
-                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-                    }
+RelationalTerm : Unit { int len = strlen($1.text)+3;
+            $$ = malloc(len);
+            snprintf($$,len,"%s",$1.text);
+        }
+        | ID {  if($1->var_type==INTEGER_TYPE || $1->var_type==FLOAT_TYPE){
+                    int len = $1->name+3; 
+	 	            $$ = malloc(len);
+	 	            snprintf($$,len,"%s",$1->name);
+                } 
+                else{
+                    exit(1);
                 }
-			}
-    | NumericExpression NOT_EQ NumericExpression {
-                $$.value = ($1.value != $3.value)?1:0;
-                int len;
-                if($1.resolvable == 0 || $3.resolvable == 0){
-                    $$.resolvable = 0;
-                        len = strlen($1.text) + 4 + strlen($3.text)+1;
-                        $$.text = malloc(len);
-                        snprintf($$.text,len,"%s != %s",$1.text,$3.text);
-                }else{
-                    $$.resolvable = 1;
-                    if($$.value == 1){
-                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-                    }else{
-                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-                    }
-                }
-			}
-    | NumericExpression GREATER_THAN NumericExpression {
-                $$.value = ($1.value > $3.value)?1:0;
-                int len;
-                if($1.resolvable == 0 || $3.resolvable == 0){
-                    $$.resolvable = 0;
-                        len = strlen($1.text) + 3 + strlen($3.text)+1;
-                        $$.text = malloc(len);
-                        snprintf($$.text,len,"%s > %s",$1.text,$3.text);
-                }else{
-                    $$.resolvable = 1;
-                    if($$.value == 1){
-                        len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-                    }else{
-                        len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-                    }
-                }
-			}
-    | NumericExpression SMALLER_THAN NumericExpression {
-			$$.value = ($1.value < $3.value)?1:0;
-			int len;
-			if($1.resolvable == 0 || $3.resolvable == 0){
-				$$.resolvable = 0;
-					len = strlen($1.text) + 3 + strlen($3.text)+1;
-					$$.text = malloc(len);
-					snprintf($$.text,len,"%s < %s",$1.text,$3.text);
-			}else{
-				$$.resolvable = 1;
-				if($$.value == 1){
-					len = 5; $$.text=malloc(len); snprintf($$.text,len,"TRUE");
-				} else {
-					len = 6; $$.text=malloc(len); snprintf($$.text,len,"FALSE");
-				}
-			}
-		}
-    | STRING EQ STRING {
-            int len = strlen($1) + strlen($3) + 18; // 18 for Objects.equals( , )
-			$$.text = malloc(len);
-			snprintf($$.text, len, "Objects.equals(%s, %s);", $1, $3);
-	    }
-    ;
+        }
+        ;
+BoolTerm : TRUE { 
+            int len = 7; // true
+	 	    $$ = malloc(len);
+	 	    snprintf($$,len,"true");
+        }
+        | FALSE {
+            int len = 8; // false
+	 	    $$ = malloc(len);
+	 	    snprintf($$,len,"false");
+        }
+        ;
 
 //State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
 
