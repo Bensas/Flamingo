@@ -1,0 +1,15 @@
+Int n = 32353;
+Int index = 2;
+Int isPrime = 1;
+while(index*index<=n && isPrime == 1) {
+        if((n%index)==0) {
+                isPrime = 0;
+        }
+        index = index + 1;
+}
+if(isPrime == 1) {
+        FLAMINGO "32353 IS PRIME";
+} else {
+        FLAMINGO "32353 IS NOT PRIME";
+}
+exit;

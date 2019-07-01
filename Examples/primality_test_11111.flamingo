@@ -1,0 +1,16 @@
+
+Int n = 11111;
+Int index = 2;
+Int isPrime = 1;
+while(index*index<=n && isPrime == 1) {
+        if((n%index)==0) {
+                isPrime = 0;
+        }
+        index = index + 1;
+}
+if(isPrime == 1) {
+        FLAMINGO "11111 IS PRIME";
+} else {
+        FLAMINGO "11111 IS NOT PRIME";
+}
+exit;
