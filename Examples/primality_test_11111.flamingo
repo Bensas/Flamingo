@@ -1,7 +1,6 @@
-
 Int n = 11111;
-Int index = 2;
-Int isPrime = 1;
+index = 2;
+isPrime = 1;
 while(index*index<=n && isPrime == 1) {
         if((n%index)==0) {
                 isPrime = 0;

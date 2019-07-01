@@ -297,8 +297,8 @@ Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
             declare($2->name, $2, INTEGER_TYPE);
 
-            if($4.type != INTEGER_TYPE && $4.type != FLOAT_TYPE) {
-                perror("Error: casting non numeric expression to numeric variable");
+            if($2->var_type != $4.type) {
+                perror("Error: float to integer assignment not supported");
                 exit(1);
             }
 
@@ -310,9 +310,9 @@ Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
             declare($2->name, $2, FLOAT_TYPE);
 
-            if($4.type != INTEGER_TYPE && $4.type != FLOAT_TYPE) {
+            if($2->var_type != $4.type) {
+                perror("Error: float to integer assignment not supported");
                 exit(1);
-                perror("Error: casting non numeric expression to numeric variable");
             }
 
             int len=FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text);
@@ -350,7 +350,6 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-                // exit_if_variable_was_not_declared($1->name);
                 int firstDeclaration = 0; // False
                
                 if(is_declared($1->name)) {
@@ -410,6 +409,7 @@ Definition : ID ASSIGN NumericExpression {
             }
         | ID ASSIGN QBIT_STR {
             exit_if_variable_was_not_declared($1->name);
+
         	char* qbitInitializations = malloc((strlen($3)-2) * 15 - 1);
 
             for(int i = 1 ; i < strlen($3)-1 ; i++){

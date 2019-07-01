@@ -1,0 +1,4 @@
+Int a = 10;
+Int b = a*(2/5);
+FLAMINGO b;
+exit;

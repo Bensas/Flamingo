@@ -1,5 +1,7 @@
-Int n = 32353;
-Int index = 2;
+String isPrimeMessage = "32353 IS PRIME";
+String isNotPrimeMessage = "32353 IS NOT PRIME";
+n = 32353;
+index = 2;
 Int isPrime = 1;
 while(index*index<=n && isPrime == 1) {
         if((n%index)==0) {
@@ -8,8 +10,8 @@ while(index*index<=n && isPrime == 1) {
         index = index + 1;
 }
 if(isPrime == 1) {
-        FLAMINGO "32353 IS PRIME";
+        FLAMINGO isPrimeMessage;
 } else {
-        FLAMINGO "32353 IS NOT PRIME";
+        FLAMINGO isNotPrimeMessage;
 }
 exit;
