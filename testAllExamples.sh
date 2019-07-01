@@ -1,3 +1,4 @@
+make clean
 make all
 echo "======================="
 echo "Fibonacci test:"
