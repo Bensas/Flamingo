@@ -297,8 +297,8 @@ Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
             declare($2->name, $2, INTEGER_TYPE);
 
-            if($4.type != INTEGER_TYPE) {
-                perror("Error: Float to Int\n");
+            if($4.type != INTEGER_TYPE && $4.type != FLOAT_TYPE) {
+                perror("Error: casting non numeric expression to numeric variable");
                 exit(1);
             }
 
@@ -310,9 +310,9 @@ Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
             declare($2->name, $2, FLOAT_TYPE);
 
-            if($4.type != FLOAT_TYPE) {
+            if($4.type != INTEGER_TYPE && $4.type != FLOAT_TYPE) {
                 exit(1);
-                perror("Error: Int to Float");
+                perror("Error: casting non numeric expression to numeric variable");
             }
 
             int len=FLOAT_LENGTH + SPACE_LEN + strlen($2->name) + SPACE_LEN + strlen($4.text);
@@ -350,7 +350,7 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-                exit_if_variable_was_not_declared($1->name);
+                // exit_if_variable_was_not_declared($1->name);
                 int firstDeclaration = 0; // False
                
                 if(is_declared($1->name)) {
