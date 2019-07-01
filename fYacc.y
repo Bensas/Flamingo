@@ -231,7 +231,7 @@ BoolRelationalTerm : RelationalTerm RELATIONAL_OP RelationalTerm {
         | RelationalTerm {;}
         ;
 
-RelationalTerm : Unit { int len = strlen($1.text)+3;
+RelationalTerm : NumericExpression { int len = strlen($1.text)+3;
             $$ = malloc(len);
             snprintf($$,len,"%s",$1.text);
         }
