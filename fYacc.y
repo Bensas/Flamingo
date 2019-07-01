@@ -146,7 +146,7 @@ IfStatement : IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Functio
                     snprintf($$, length, "if (%s){%s}", $3, $6);
             }
             | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE OPEN_BRACKET Function CLOSE_BRACKET {
-                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3) + strlen($6) + strlen($10) + 1;
+                    int length = IF_ELSE_STATEMENT_LENGTH + strlen($3) + strlen($6) + strlen($10) + 1 + 2;
                     $$ = malloc(length);
                     snprintf($$, length, "if (%s){%s} else {%s}", $3, $6, $10);
             }
