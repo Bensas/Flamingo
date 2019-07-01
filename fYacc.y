@@ -102,10 +102,8 @@ Program : Function {
 
 Function : Statement {
 		$$ = $1;
-		//printf("Function->Statement: alive with 1 statement with len %lu\n",strlen($$));
 		}
 	| Function Statement {
-		//printf("Function->Function Statement: alive with more than 1 statement with len %lu\n",strlen($$));
 		int len = strlen($1) + strlen($2) +2;
 	 	$$ = malloc(len);
 	 	snprintf($$,len,"%s\n%s",$1,$2);
@@ -119,7 +117,7 @@ Statement : Declaration END {
     }
     | IfStatement {;}
     | WhileStatement {
-			int len = strlen($1) + 1;
+			int len = strlen($1) + 2;
     	    $$ = malloc(len);
             snprintf($$,len, "%s;", $1);
 		}
@@ -129,7 +127,7 @@ Statement : Declaration END {
             snprintf($$,len, "%s;", $1);
     	}
     | GateApply END {
-			int len = strlen($1) + 2; // Why is it sometimes 2 and other 1 ? Makes more sense 1 for ; but I dont know
+			int len = strlen($1) + 2;
 			$$ = malloc(len);
     	    snprintf($$,len, "%s;", $1);
         }
@@ -259,8 +257,6 @@ BoolTerm : TRUE {
         }
         ;
 
-//State state = new State(new Qbit[]{new Qbit(1, 0), new Qbit(0, 1)});//register reg = |01>
-
 Declaration : DECL_INT ID {
             exit_program_if_variable_was_declared($2->name);
             declare($2->name, $2, INTEGER_TYPE);
@@ -350,7 +346,6 @@ Declaration : DECL_INT ID {
         ;
 
 Definition : ID ASSIGN NumericExpression {
-                // exit_if_variable_was_not_declared($1->name);
                 int firstDeclaration = 0; // False
                
                 if(is_declared($1->name)) {
@@ -601,8 +596,6 @@ Unit :
                                                           }
   ;
 
-
-GateApply : //state.applyGateToQbit(0, new Hadamard2d());  ----------  H(reg, 0);
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
       exit_if_variable_was_not_declared($3->name);
 	  int len;
