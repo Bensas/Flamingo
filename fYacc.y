@@ -597,6 +597,7 @@ Unit :
                                                           }
   ;
 
+GateApply: 
   GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS {
       exit_if_variable_was_not_declared($3->name);
 	  int len;
