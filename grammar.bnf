@@ -1,0 +1,32 @@
+Program ::= Function | Function EXIT END | EXIT END ;
+
+Function ::= Statement | Function Statement ;
+
+Statement ::= Declaration END | IfStatement | WhileStatement | PrintStatement END | GateApply END | BoolExp END ;
+
+IfStatement ::= IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET ELSE OPEN_BRACKET Function CLOSE_BRACKET | IF OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET IfStatement ;
+
+WhileStatement ::= WHILE OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS OPEN_BRACKET Function CLOSE_BRACKET
+
+PrintStatement ::= PRINT STRING | PRINT ID
+
+BoolExp ::= SINGLE_TERM_OP BoolExp | BoolExp DOUBLE_TERM_OP BoolExp | SINGLE_TERM_OP BoolTerm | BoolTerm DOUBLE_TERM_OP BoolTerm | OPEN_PARENTHESIS BoolExp CLOSE_PARENTHESIS | BoolTerm | BoolRelationalTerm ;
+
+BoolRelationalTerm ::= RelationalTerm RELATIONAL_OP RelationalTerm | BoolRelationalTerm RELATIONAL_OP BoolRelationalTerm | OPEN_PARENTHESIS BoolRelationalTerm CLOSE_PARENTHESIS | RelationalTerm ;
+
+RelationalTerm ::= NumericExpression| ID ;
+
+BoolTerm ::= TRUE | FALSE ;
+
+Declaration ::= DECL_INT ID | DECL_FLOAT ID | DECL_STRING ID | DECL_REGISTER ID | DECL_INT ID ASSIGNE NumericExpression | DECL_FLOAT ID ASSIGN NumericExpression | DECL_STRING ID ASSIGN STRING | DECL_REGISTER ID ASSIGN QBIT_STR | Definition ;
+
+Definition ::= ID ASSIGN NumericExpression | ID ASSIGN QBIT_STR ;
+
+NumericExpression ::= NumericExpression PLUS Term | NumericExpression MINUS Term | Term | MEASURE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS ;
+
+Term ::= Term MULTIPLY Unit | Term DIVIDE Unit | Term MODULO Unit | Unit ;
+
+Unit ::= ID | MINUS Unit | INTEGER_NUMBER | FLOAT_NUMBER | OPEN_PARENTHESIS NumericExpression CLOSE_PARENTHESIS ;
+
+GateApply ::= GATE OPEN_PARENTHESIS ID NumericExpression CLOSE_PARENTHESIS ;
+
