@@ -1,4 +1,5 @@
 make all
+echo "======================="
 echo "Fibonacci test:"
 ./flamingompiler Examples/fibonacci.flamingo
 echo "======================="
